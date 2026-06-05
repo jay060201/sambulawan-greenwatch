@@ -14,16 +14,216 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      compliance_checklist: {
+        Row: {
+          category: Database["public"]["Enums"]["checklist_category"]
+          id: string
+          item_name: string
+          points: number
+          sort_order: number
+        }
+        Insert: {
+          category: Database["public"]["Enums"]["checklist_category"]
+          id?: string
+          item_name: string
+          points?: number
+          sort_order?: number
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["checklist_category"]
+          id?: string
+          item_name?: string
+          points?: number
+          sort_order?: number
+        }
+        Relationships: []
+      }
+      evaluation_results: {
+        Row: {
+          checklist_id: string
+          evaluation_id: string
+          id: string
+          score: number
+          status: Database["public"]["Enums"]["item_status"]
+        }
+        Insert: {
+          checklist_id: string
+          evaluation_id: string
+          id?: string
+          score?: number
+          status: Database["public"]["Enums"]["item_status"]
+        }
+        Update: {
+          checklist_id?: string
+          evaluation_id?: string
+          id?: string
+          score?: number
+          status?: Database["public"]["Enums"]["item_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "evaluation_results_checklist_id_fkey"
+            columns: ["checklist_id"]
+            isOneToOne: false
+            referencedRelation: "compliance_checklist"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "evaluation_results_evaluation_id_fkey"
+            columns: ["evaluation_id"]
+            isOneToOne: false
+            referencedRelation: "evaluations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      evaluations: {
+        Row: {
+          approved: boolean
+          compliance_status: Database["public"]["Enums"]["compliance_status"]
+          created_at: string
+          evaluation_date: string
+          evaluator_id: string | null
+          household_id: string
+          id: string
+          max_score: number
+          remarks: string | null
+          total_score: number
+        }
+        Insert: {
+          approved?: boolean
+          compliance_status?: Database["public"]["Enums"]["compliance_status"]
+          created_at?: string
+          evaluation_date?: string
+          evaluator_id?: string | null
+          household_id: string
+          id?: string
+          max_score?: number
+          remarks?: string | null
+          total_score?: number
+        }
+        Update: {
+          approved?: boolean
+          compliance_status?: Database["public"]["Enums"]["compliance_status"]
+          created_at?: string
+          evaluation_date?: string
+          evaluator_id?: string | null
+          household_id?: string
+          id?: string
+          max_score?: number
+          remarks?: string | null
+          total_score?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "evaluations_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      households: {
+        Row: {
+          address: string
+          archived: boolean
+          contact_number: string | null
+          created_at: string
+          head_of_family: string
+          household_number: string
+          id: string
+          purok: string
+          total_members: number
+        }
+        Insert: {
+          address: string
+          archived?: boolean
+          contact_number?: string | null
+          created_at?: string
+          head_of_family: string
+          household_number: string
+          id?: string
+          purok: string
+          total_members?: number
+        }
+        Update: {
+          address?: string
+          archived?: boolean
+          contact_number?: string | null
+          created_at?: string
+          head_of_family?: string
+          household_number?: string
+          id?: string
+          purok?: string
+          total_members?: number
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          full_name: string
+          id: string
+          status: string
+          username: string
+        }
+        Insert: {
+          created_at?: string
+          full_name: string
+          id: string
+          status?: string
+          username: string
+        }
+        Update: {
+          created_at?: string
+          full_name?: string
+          id?: string
+          status?: string
+          username?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "bhw" | "viewer"
+      checklist_category:
+        | "waste_segregation"
+        | "sanitation"
+        | "gardening"
+        | "ordinance"
+      compliance_status: "compliant" | "partially_compliant" | "non_compliant"
+      item_status: "compliant" | "partially_compliant" | "non_compliant"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +350,16 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "bhw", "viewer"],
+      checklist_category: [
+        "waste_segregation",
+        "sanitation",
+        "gardening",
+        "ordinance",
+      ],
+      compliance_status: ["compliant", "partially_compliant", "non_compliant"],
+      item_status: ["compliant", "partially_compliant", "non_compliant"],
+    },
   },
 } as const
