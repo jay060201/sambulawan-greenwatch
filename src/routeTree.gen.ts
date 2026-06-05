@@ -9,38 +9,175 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedUsersRouteImport } from './routes/_authenticated/users'
+import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
+import { Route as AuthenticatedReportsRouteImport } from './routes/_authenticated/reports'
+import { Route as AuthenticatedHouseholdsRouteImport } from './routes/_authenticated/households'
+import { Route as AuthenticatedEvaluationsRouteImport } from './routes/_authenticated/evaluations'
+import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authenticated/analytics'
+import { Route as AuthenticatedEvaluationsNewRouteImport } from './routes/_authenticated/evaluations.new'
 
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRoute = AuthenticatedRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedUsersRoute = AuthenticatedUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedReportsRoute = AuthenticatedReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedHouseholdsRoute = AuthenticatedHouseholdsRouteImport.update({
+  id: '/households',
+  path: '/households',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedEvaluationsRoute =
+  AuthenticatedEvaluationsRouteImport.update({
+    id: '/evaluations',
+    path: '/evaluations',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedAnalyticsRoute = AuthenticatedAnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedEvaluationsNewRoute =
+  AuthenticatedEvaluationsNewRouteImport.update({
+    id: '/new',
+    path: '/new',
+    getParentRoute: () => AuthenticatedEvaluationsRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/analytics': typeof AuthenticatedAnalyticsRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/evaluations': typeof AuthenticatedEvaluationsRouteWithChildren
+  '/households': typeof AuthenticatedHouseholdsRoute
+  '/reports': typeof AuthenticatedReportsRoute
+  '/settings': typeof AuthenticatedSettingsRoute
+  '/users': typeof AuthenticatedUsersRoute
+  '/evaluations/new': typeof AuthenticatedEvaluationsNewRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/analytics': typeof AuthenticatedAnalyticsRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/evaluations': typeof AuthenticatedEvaluationsRouteWithChildren
+  '/households': typeof AuthenticatedHouseholdsRoute
+  '/reports': typeof AuthenticatedReportsRoute
+  '/settings': typeof AuthenticatedSettingsRoute
+  '/users': typeof AuthenticatedUsersRoute
+  '/evaluations/new': typeof AuthenticatedEvaluationsNewRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteWithChildren
+  '/auth': typeof AuthRoute
+  '/_authenticated/analytics': typeof AuthenticatedAnalyticsRoute
+  '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/evaluations': typeof AuthenticatedEvaluationsRouteWithChildren
+  '/_authenticated/households': typeof AuthenticatedHouseholdsRoute
+  '/_authenticated/reports': typeof AuthenticatedReportsRoute
+  '/_authenticated/settings': typeof AuthenticatedSettingsRoute
+  '/_authenticated/users': typeof AuthenticatedUsersRoute
+  '/_authenticated/evaluations/new': typeof AuthenticatedEvaluationsNewRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/analytics'
+    | '/dashboard'
+    | '/evaluations'
+    | '/households'
+    | '/reports'
+    | '/settings'
+    | '/users'
+    | '/evaluations/new'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/auth'
+    | '/analytics'
+    | '/dashboard'
+    | '/evaluations'
+    | '/households'
+    | '/reports'
+    | '/settings'
+    | '/users'
+    | '/evaluations/new'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/auth'
+    | '/_authenticated/analytics'
+    | '/_authenticated/dashboard'
+    | '/_authenticated/evaluations'
+    | '/_authenticated/households'
+    | '/_authenticated/reports'
+    | '/_authenticated/settings'
+    | '/_authenticated/users'
+    | '/_authenticated/evaluations/new'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
+  AuthRoute: typeof AuthRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,22 +185,108 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/users': {
+      id: '/_authenticated/users'
+      path: '/users'
+      fullPath: '/users'
+      preLoaderRoute: typeof AuthenticatedUsersRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/settings': {
+      id: '/_authenticated/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AuthenticatedSettingsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/reports': {
+      id: '/_authenticated/reports'
+      path: '/reports'
+      fullPath: '/reports'
+      preLoaderRoute: typeof AuthenticatedReportsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/households': {
+      id: '/_authenticated/households'
+      path: '/households'
+      fullPath: '/households'
+      preLoaderRoute: typeof AuthenticatedHouseholdsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/evaluations': {
+      id: '/_authenticated/evaluations'
+      path: '/evaluations'
+      fullPath: '/evaluations'
+      preLoaderRoute: typeof AuthenticatedEvaluationsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/dashboard': {
+      id: '/_authenticated/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/analytics': {
+      id: '/_authenticated/analytics'
+      path: '/analytics'
+      fullPath: '/analytics'
+      preLoaderRoute: typeof AuthenticatedAnalyticsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/evaluations/new': {
+      id: '/_authenticated/evaluations/new'
+      path: '/new'
+      fullPath: '/evaluations/new'
+      preLoaderRoute: typeof AuthenticatedEvaluationsNewRouteImport
+      parentRoute: typeof AuthenticatedEvaluationsRoute
+    }
   }
 }
 
+interface AuthenticatedEvaluationsRouteChildren {
+  AuthenticatedEvaluationsNewRoute: typeof AuthenticatedEvaluationsNewRoute
+}
+
+const AuthenticatedEvaluationsRouteChildren: AuthenticatedEvaluationsRouteChildren =
+  {
+    AuthenticatedEvaluationsNewRoute: AuthenticatedEvaluationsNewRoute,
+  }
+
+const AuthenticatedEvaluationsRouteWithChildren =
+  AuthenticatedEvaluationsRoute._addFileChildren(
+    AuthenticatedEvaluationsRouteChildren,
+  )
+
+interface AuthenticatedRouteChildren {
+  AuthenticatedAnalyticsRoute: typeof AuthenticatedAnalyticsRoute
+  AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedEvaluationsRoute: typeof AuthenticatedEvaluationsRouteWithChildren
+  AuthenticatedHouseholdsRoute: typeof AuthenticatedHouseholdsRoute
+  AuthenticatedReportsRoute: typeof AuthenticatedReportsRoute
+  AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
+  AuthenticatedUsersRoute: typeof AuthenticatedUsersRoute
+}
+
+const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedAnalyticsRoute: AuthenticatedAnalyticsRoute,
+  AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedEvaluationsRoute: AuthenticatedEvaluationsRouteWithChildren,
+  AuthenticatedHouseholdsRoute: AuthenticatedHouseholdsRoute,
+  AuthenticatedReportsRoute: AuthenticatedReportsRoute,
+  AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
+  AuthenticatedUsersRoute: AuthenticatedUsersRoute,
+}
+
+const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
+  AuthenticatedRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRoute: AuthenticatedRouteWithChildren,
+  AuthRoute: AuthRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
