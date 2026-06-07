@@ -43,6 +43,7 @@ export type Database = {
           checklist_id: string
           evaluation_id: string
           id: string
+          photo_url: string | null
           score: number
           status: Database["public"]["Enums"]["item_status"]
         }
@@ -50,6 +51,7 @@ export type Database = {
           checklist_id: string
           evaluation_id: string
           id?: string
+          photo_url?: string | null
           score?: number
           status: Database["public"]["Enums"]["item_status"]
         }
@@ -57,6 +59,7 @@ export type Database = {
           checklist_id?: string
           evaluation_id?: string
           id?: string
+          photo_url?: string | null
           score?: number
           status?: Database["public"]["Enums"]["item_status"]
         }
