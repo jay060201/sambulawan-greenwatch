@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
@@ -10,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { useAuth } from "@/hooks/useAuth";
 import { exportCSV } from "@/lib/bshces-utils";
-import { Download, PlusCircle, Trash2 } from "lucide-react";
+import { Download, PlusCircle, Trash2, ClipboardCheck } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/households")({
@@ -33,7 +34,12 @@ function HouseholdsPage() {
     queryFn: async () => {
       let q = supabase.from("households").select("*", { count: "exact" }).eq("archived", false);
       if (purok !== "all") q = q.eq("purok", purok);
-      if (search) q = q.ilike("head_of_family", `%${search}%`);
+      if (search) {
+        const s = search.trim().replace(/[,()]/g, " ");
+        q = q.or(
+          `head_of_family.ilike.%${s}%,household_number.ilike.%${s}%,address.ilike.%${s}%,purok.ilike.%${s}%`
+        );
+      }
       q = q.order("household_number").range(page * PAGE, page * PAGE + PAGE - 1);
       const { data, count } = await q;
       return { rows: data ?? [], total: count ?? 0 };
@@ -97,7 +103,7 @@ function HouseholdsPage() {
         <CardHeader>
           <div className="flex flex-wrap items-center gap-3">
             <Input
-              placeholder="Search head of family…"
+              placeholder="Search name, HH #, purok, address…"
               value={search}
               onChange={(e) => {
                 setSearch(e.target.value);
@@ -129,7 +135,7 @@ function HouseholdsPage() {
                   <th>Address</th>
                   <th>Members</th>
                   <th>Contact</th>
-                  {canDelete && <th></th>}
+                  {canWrite && <th></th>}
                 </tr>
               </thead>
               <tbody>
@@ -146,11 +152,20 @@ function HouseholdsPage() {
                       <td className="text-muted-foreground">{h.address}</td>
                       <td>{h.total_members}</td>
                       <td className="text-muted-foreground">{h.contact_number}</td>
-                      {canDelete && (
+                      {canWrite && (
                         <td>
-                          <Button variant="ghost" size="icon" onClick={() => delMut.mutate(h.id)}>
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
+                          <div className="flex items-center gap-1">
+                            <Button asChild variant="outline" size="sm">
+                              <Link to="/evaluations/new" search={{ household: h.id } as any}>
+                                <ClipboardCheck className="mr-1 h-3.5 w-3.5" /> Evaluate
+                              </Link>
+                            </Button>
+                            {canDelete && (
+                              <Button variant="ghost" size="icon" onClick={() => delMut.mutate(h.id)}>
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                              </Button>
+                            )}
+                          </div>
                         </td>
                       )}
                     </tr>
