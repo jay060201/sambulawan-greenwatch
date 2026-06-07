@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CATEGORY_LABEL } from "@/lib/bshces-utils";
 import { toast } from "sonner";
+import { Camera, Loader2, X } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/evaluations/new")({
   head: () => ({ meta: [{ title: "New Evaluation — BSHCES" }] }),
@@ -28,6 +29,33 @@ function NewEvaluationPage() {
   const [householdId, setHouseholdId] = useState<string>("");
   const [remarks, setRemarks] = useState("");
   const [answers, setAnswers] = useState<Record<string, Status>>({});
+  const [photos, setPhotos] = useState<Record<string, string>>({});
+  const [uploading, setUploading] = useState<Record<string, boolean>>({});
+
+  async function handlePhoto(itemId: string, file: File) {
+    if (!user) return;
+    if (file.size > 5 * 1024 * 1024) { toast.error("Max 5MB"); return; }
+    setUploading((u) => ({ ...u, [itemId]: true }));
+    try {
+      const ext = file.name.split(".").pop() || "jpg";
+      const path = `${user.id}/${Date.now()}-${itemId}.${ext}`;
+      const { error } = await supabase.storage.from("evaluation-evidence").upload(path, file, { upsert: true });
+      if (error) throw error;
+      setPhotos((p) => ({ ...p, [itemId]: path }));
+      toast.success("Photo attached");
+    } catch (e: any) {
+      toast.error(e.message ?? "Upload failed");
+    } finally {
+      setUploading((u) => ({ ...u, [itemId]: false }));
+    }
+  }
+
+  async function removePhoto(itemId: string) {
+    const path = photos[itemId];
+    if (!path) return;
+    await supabase.storage.from("evaluation-evidence").remove([path]);
+    setPhotos((p) => { const n = { ...p }; delete n[itemId]; return n; });
+  }
 
   const households = useQuery({
     queryKey: ["all-households"],
@@ -80,7 +108,7 @@ function NewEvaluationPage() {
       const rows = (checklist.data ?? []).map((c: any) => {
         const a: Status = answers[c.id] ?? "non_compliant";
         const score = a === "compliant" ? c.points : a === "partially_compliant" ? Math.floor(c.points / 2) : 0;
-        return { evaluation_id: ev.id, checklist_id: c.id, status: a, score };
+        return { evaluation_id: ev.id, checklist_id: c.id, status: a, score, photo_url: photos[c.id] ?? null };
       });
       const { error: e2 } = await supabase.from("evaluation_results").insert(rows);
       if (e2) throw e2;
@@ -125,7 +153,7 @@ function NewEvaluationPage() {
           <CardHeader><CardTitle>{CATEGORY_LABEL[cat]}</CardTitle></CardHeader>
           <CardContent className="divide-y divide-border">
             {items.map((item) => (
-              <div key={item.id} className="grid grid-cols-1 items-center gap-3 py-3 md:grid-cols-[1fr_auto]">
+              <div key={item.id} className="grid grid-cols-1 items-start gap-3 py-3 md:grid-cols-[1fr_auto_auto]">
                 <div>
                   <p className="font-medium">{item.item_name}</p>
                   <p className="text-xs text-muted-foreground">{item.points} points</p>
@@ -142,6 +170,29 @@ function NewEvaluationPage() {
                       {s === "compliant" ? "C" : s === "partially_compliant" ? "P" : "N"}
                     </Button>
                   ))}
+                </div>
+                <div className="flex items-center gap-2">
+                  {photos[item.id] ? (
+                    <div className="flex items-center gap-1 rounded-md border border-border px-2 py-1 text-xs">
+                      <Camera className="h-3 w-3 text-primary" />
+                      <span className="text-muted-foreground">Attached</span>
+                      <button type="button" onClick={() => removePhoto(item.id)} className="ml-1 text-muted-foreground hover:text-destructive">
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ) : (
+                    <label className="inline-flex cursor-pointer items-center gap-1 rounded-md border border-dashed border-border px-2 py-1 text-xs text-muted-foreground hover:bg-muted">
+                      {uploading[item.id] ? <Loader2 className="h-3 w-3 animate-spin" /> : <Camera className="h-3 w-3" />}
+                      <span>Evidence</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        capture="environment"
+                        className="hidden"
+                        onChange={(e) => { const f = e.target.files?.[0]; if (f) handlePhoto(item.id, f); e.target.value = ""; }}
+                      />
+                    </label>
+                  )}
                 </div>
               </div>
             ))}
