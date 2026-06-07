@@ -15,6 +15,7 @@ import { Camera, Loader2, X } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/evaluations/new")({
   head: () => ({ meta: [{ title: "New Evaluation — BSHCES" }] }),
+  validateSearch: (s: Record<string, unknown>) => ({ household: (s.household as string) ?? "" }),
   component: NewEvaluationPage,
 });
 
@@ -23,10 +24,11 @@ type Status = "compliant" | "partially_compliant" | "non_compliant";
 function NewEvaluationPage() {
   const { role, user } = useAuth();
   const navigate = useNavigate();
+  const { household: presetHousehold } = Route.useSearch();
 
   if (role !== "admin" && role !== "bhw") return <AccessDenied />;
 
-  const [householdId, setHouseholdId] = useState<string>("");
+  const [householdId, setHouseholdId] = useState<string>(presetHousehold || "");
   const [remarks, setRemarks] = useState("");
   const [answers, setAnswers] = useState<Record<string, Status>>({});
   const [photos, setPhotos] = useState<Record<string, string>>({});
