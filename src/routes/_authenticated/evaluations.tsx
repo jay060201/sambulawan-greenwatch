@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,10 +12,15 @@ import { useAuth } from "@/hooks/useAuth";
 
 export const Route = createFileRoute("/_authenticated/evaluations")({
   head: () => ({ meta: [{ title: "Evaluations — BSHCES" }] }),
-  component: EvaluationsPage,
+  component: EvaluationsRouteShell,
 });
 
 const PAGE = 15;
+
+function EvaluationsRouteShell() {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  return pathname === "/evaluations" ? <EvaluationsPage /> : <Outlet />;
+}
 
 function EvaluationsPage() {
   const { role } = useAuth();
