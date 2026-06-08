@@ -1,5 +1,5 @@
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,10 +7,11 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useState } from "react";
 import { COMPLIANCE_LABEL, complianceBadgeClass, exportCSV } from "@/lib/bshces-utils";
-import { Download, PlusCircle, Eye, RotateCw } from "lucide-react";
+import { Download, PlusCircle, Eye, RotateCw, Camera, Loader2, Pencil, X } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { CATEGORY_LABEL } from "@/lib/bshces-utils";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/evaluations")({
   head: () => ({ meta: [{ title: "Evaluations — BSHCES" }] }),
@@ -145,6 +146,13 @@ function EvaluationsPage() {
 }
 
 function EvaluationDetailDialog({ evaluationId, onClose }: { evaluationId: string | null; onClose: () => void }) {
+  const { role, user } = useAuth();
+  const qc = useQueryClient();
+  const canEdit = role === "admin" || role === "bhw";
+  const [editing, setEditing] = useState(false);
+  const [edits, setEdits] = useState<Record<string, { status: string; photo_url: string | null }>>({});
+  const [uploading, setUploading] = useState<Record<string, boolean>>({});
+
   const { data, isLoading } = useQuery({
     queryKey: ["evaluation-detail", evaluationId],
     enabled: !!evaluationId,
@@ -156,7 +164,7 @@ function EvaluationDetailDialog({ evaluationId, onClose }: { evaluationId: strin
         .maybeSingle();
       const { data: results } = await supabase
         .from("evaluation_results")
-        .select("id, status, score, photo_url, compliance_checklist(item_name, category, points)")
+        .select("id, status, score, photo_url, checklist_id, compliance_checklist(item_name, category, points)")
         .eq("evaluation_id", evaluationId!);
       const withUrls = await Promise.all(
         (results ?? []).map(async (r: any) => {
@@ -171,11 +179,77 @@ function EvaluationDetailDialog({ evaluationId, onClose }: { evaluationId: strin
     },
   });
 
+  function startEdit() {
+    const init: Record<string, { status: string; photo_url: string | null }> = {};
+    (data?.results ?? []).forEach((r: any) => { init[r.id] = { status: r.status, photo_url: r.photo_url }; });
+    setEdits(init);
+    setEditing(true);
+  }
+
+  async function uploadFor(resultId: string, file: File) {
+    if (!user) return;
+    if (file.size > 5 * 1024 * 1024) { toast.error("Max 5MB"); return; }
+    setUploading((u) => ({ ...u, [resultId]: true }));
+    try {
+      const ext = file.name.split(".").pop() || "jpg";
+      const path = `${user.id}/${Date.now()}-${resultId}.${ext}`;
+      const { error } = await supabase.storage.from("evaluation-evidence").upload(path, file, { upsert: true });
+      if (error) throw error;
+      setEdits((e) => ({ ...e, [resultId]: { ...e[resultId], photo_url: path } }));
+      toast.success("Photo attached");
+    } catch (e: any) {
+      toast.error(e.message ?? "Upload failed");
+    } finally {
+      setUploading((u) => ({ ...u, [resultId]: false }));
+    }
+  }
+
+  const save = useMutation({
+    mutationFn: async () => {
+      if (!data?.ev) return;
+      let total = 0;
+      const max = data.ev.max_score;
+      const updates = data.results.map((r: any) => {
+        const ed = edits[r.id] ?? { status: r.status, photo_url: r.photo_url };
+        const pts = r.compliance_checklist?.points ?? 0;
+        const score = ed.status === "compliant" ? pts : ed.status === "partially_compliant" ? Math.floor(pts / 2) : 0;
+        total += score;
+        return { id: r.id, status: ed.status, score, photo_url: ed.photo_url };
+      });
+      for (const u of updates) {
+        const { error } = await supabase.from("evaluation_results")
+          .update({ status: u.status as any, score: u.score, photo_url: u.photo_url })
+          .eq("id", u.id);
+        if (error) throw error;
+      }
+      const ratio = max ? total / max : 0;
+      const status = ratio >= 0.85 ? "compliant" : ratio >= 0.5 ? "partially_compliant" : "non_compliant";
+      const { error: e2 } = await supabase.from("evaluations")
+        .update({ total_score: total, compliance_status: status as any })
+        .eq("id", data.ev.id);
+      if (e2) throw e2;
+    },
+    onSuccess: () => {
+      toast.success("Evaluation updated");
+      setEditing(false);
+      qc.invalidateQueries({ queryKey: ["evaluation-detail", evaluationId] });
+      qc.invalidateQueries({ queryKey: ["evaluations"] });
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
   return (
     <Dialog open={!!evaluationId} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Evaluation Details</DialogTitle>
+          <DialogTitle className="flex items-center justify-between gap-2">
+            <span>Evaluation Details</span>
+            {canEdit && data?.ev && !editing && (
+              <Button size="sm" variant="outline" onClick={startEdit}>
+                <Pencil className="mr-1 h-3.5 w-3.5" /> Edit
+              </Button>
+            )}
+          </DialogTitle>
         </DialogHeader>
         {isLoading || !data?.ev ? (
           <p className="text-sm text-muted-foreground">Loading…</p>
@@ -191,23 +265,64 @@ function EvaluationDetailDialog({ evaluationId, onClose }: { evaluationId: strin
               <div className="rounded-md bg-muted/50 p-3 text-sm"><span className="text-xs uppercase text-muted-foreground">Remarks: </span>{data.ev.remarks}</div>
             )}
             <div className="space-y-2">
-              {data.results.map((r: any) => (
-                <div key={r.id} className="flex items-start gap-3 rounded-md border border-border p-3">
-                  <div className="flex-1">
-                    <p className="text-xs text-muted-foreground">{CATEGORY_LABEL[r.compliance_checklist?.category] ?? r.compliance_checklist?.category}</p>
-                    <p className="font-medium">{r.compliance_checklist?.item_name}</p>
-                    <p className="text-xs"><span className={`rounded-full px-2 py-0.5 ${complianceBadgeClass(r.status)}`}>{COMPLIANCE_LABEL[r.status]}</span> · {r.score} pts</p>
+              {data.results.map((r: any) => {
+                const ed = edits[r.id];
+                const curStatus = editing ? ed?.status ?? r.status : r.status;
+                const hasNewPhoto = editing && ed?.photo_url && ed.photo_url !== r.photo_url;
+                return (
+                  <div key={r.id} className="flex items-start gap-3 rounded-md border border-border p-3">
+                    <div className="flex-1">
+                      <p className="text-xs text-muted-foreground">{CATEGORY_LABEL[r.compliance_checklist?.category] ?? r.compliance_checklist?.category}</p>
+                      <p className="font-medium">{r.compliance_checklist?.item_name}</p>
+                      {editing ? (
+                        <div className="mt-2 flex flex-wrap items-center gap-2">
+                          {(["compliant","partially_compliant","non_compliant"] as const).map((s) => (
+                            <Button key={s} type="button" size="sm"
+                              variant={curStatus === s ? "default" : "outline"}
+                              onClick={() => setEdits((e) => ({ ...e, [r.id]: { ...(e[r.id] ?? { photo_url: r.photo_url }), status: s } }))}>
+                              {COMPLIANCE_LABEL[s]}
+                            </Button>
+                          ))}
+                          <label className="inline-flex cursor-pointer items-center gap-1 rounded-md border border-dashed border-border px-2 py-1 text-xs text-muted-foreground hover:bg-muted">
+                            {uploading[r.id] ? <Loader2 className="h-3 w-3 animate-spin" /> : <Camera className="h-3 w-3" />}
+                            <span>{ed?.photo_url ? "Replace photo" : "Attach photo"}</span>
+                            <input type="file" accept="image/*" capture="environment" className="hidden"
+                              onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadFor(r.id, f); e.target.value = ""; }} />
+                          </label>
+                          {ed?.photo_url && (
+                            <button type="button" onClick={() => setEdits((e) => ({ ...e, [r.id]: { ...e[r.id], photo_url: null } }))}
+                              className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-destructive">
+                              <X className="h-3 w-3" /> Remove
+                            </button>
+                          )}
+                        </div>
+                      ) : (
+                        <p className="text-xs"><span className={`rounded-full px-2 py-0.5 ${complianceBadgeClass(r.status)}`}>{COMPLIANCE_LABEL[r.status]}</span> · {r.score} pts</p>
+                      )}
+                    </div>
+                    {(hasNewPhoto || (!editing && r.signedUrl)) ? (
+                      r.signedUrl && !hasNewPhoto ? (
+                        <a href={r.signedUrl} target="_blank" rel="noreferrer" className="shrink-0">
+                          <img src={r.signedUrl} alt="evidence" className="h-20 w-20 rounded-md border border-border object-cover" />
+                        </a>
+                      ) : (
+                        <div className="grid h-20 w-20 shrink-0 place-items-center rounded-md border border-primary/40 bg-primary/5 text-[10px] text-primary">New photo</div>
+                      )
+                    ) : (
+                      <div className="grid h-20 w-20 shrink-0 place-items-center rounded-md border border-dashed border-border text-[10px] text-muted-foreground">No photo</div>
+                    )}
                   </div>
-                  {r.signedUrl ? (
-                    <a href={r.signedUrl} target="_blank" rel="noreferrer" className="shrink-0">
-                      <img src={r.signedUrl} alt="evidence" className="h-20 w-20 rounded-md border border-border object-cover" />
-                    </a>
-                  ) : (
-                    <div className="grid h-20 w-20 shrink-0 place-items-center rounded-md border border-dashed border-border text-[10px] text-muted-foreground">No photo</div>
-                  )}
-                </div>
-              ))}
+                );
+              })}
             </div>
+            {editing && (
+              <div className="flex justify-end gap-2 border-t border-border pt-3">
+                <Button variant="outline" onClick={() => { setEditing(false); setEdits({}); }}>Cancel</Button>
+                <Button onClick={() => save.mutate()} disabled={save.isPending}>
+                  {save.isPending ? "Saving…" : "Save changes"}
+                </Button>
+              </div>
+            )}
           </div>
         )}
       </DialogContent>
