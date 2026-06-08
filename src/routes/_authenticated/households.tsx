@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { useAuth } from "@/hooks/useAuth";
 import { exportCSV } from "@/lib/bshces-utils";
+import { PUROKS } from "@/lib/bshces-utils";
 import { Download, PlusCircle, Trash2, ClipboardCheck } from "lucide-react";
 import { toast } from "sonner";
 
@@ -117,8 +118,8 @@ function HouseholdsPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Puroks</SelectItem>
-                {[1, 2, 3, 4, 5, 6, 7].map((n) => (
-                  <SelectItem key={n} value={`Purok ${n}`}>{`Purok ${n}`}</SelectItem>
+                {PUROKS.map((p) => (
+                  <SelectItem key={p} value={p}>{p}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -194,7 +195,7 @@ function HouseholdForm({ onSubmit }: { onSubmit: (v: any) => void }) {
   const [form, setForm] = useState({
     household_number: "",
     head_of_family: "",
-    purok: "Purok 1",
+    purok: "Aquino",
     address: "",
     contact_number: "",
     total_members: 1,
@@ -211,7 +212,7 @@ function HouseholdForm({ onSubmit }: { onSubmit: (v: any) => void }) {
           <Select value={form.purok} onValueChange={(v) => setForm({ ...form, purok: v })}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
-              {[1,2,3,4,5,6,7].map(n => <SelectItem key={n} value={`Purok ${n}`}>{`Purok ${n}`}</SelectItem>)}
+              {PUROKS.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
             </SelectContent>
           </Select>
         </div>
