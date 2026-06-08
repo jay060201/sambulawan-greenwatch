@@ -36,7 +36,7 @@ function EvaluationsPage() {
     queryFn: async () => {
       let q = supabase
         .from("evaluations")
-        .select("id, evaluation_date, total_score, max_score, compliance_status, approved, remarks, households(head_of_family, purok, household_number)", { count: "exact" });
+        .select("id, household_id, evaluation_date, total_score, max_score, compliance_status, approved, remarks, households(head_of_family, purok, household_number)", { count: "exact" });
       if (status !== "all") q = q.eq("compliance_status", status as any);
       q = q.order("evaluation_date", { ascending: false }).range(page * PAGE, page * PAGE + PAGE - 1);
       const { data, count } = await q;
@@ -141,5 +141,76 @@ function EvaluationsPage() {
 
       <EvaluationDetailDialog evaluationId={viewId} onClose={() => setViewId(null)} />
     </div>
+  );
+}
+
+function EvaluationDetailDialog({ evaluationId, onClose }: { evaluationId: string | null; onClose: () => void }) {
+  const { data, isLoading } = useQuery({
+    queryKey: ["evaluation-detail", evaluationId],
+    enabled: !!evaluationId,
+    queryFn: async () => {
+      const { data: ev } = await supabase
+        .from("evaluations")
+        .select("id, evaluation_date, total_score, max_score, compliance_status, remarks, households(head_of_family, household_number, purok)")
+        .eq("id", evaluationId!)
+        .maybeSingle();
+      const { data: results } = await supabase
+        .from("evaluation_results")
+        .select("id, status, score, photo_url, compliance_checklist(item_name, category, points)")
+        .eq("evaluation_id", evaluationId!);
+      const withUrls = await Promise.all(
+        (results ?? []).map(async (r: any) => {
+          if (!r.photo_url) return { ...r, signedUrl: null };
+          const { data: signed } = await supabase.storage
+            .from("evaluation-evidence")
+            .createSignedUrl(r.photo_url, 3600);
+          return { ...r, signedUrl: signed?.signedUrl ?? null };
+        }),
+      );
+      return { ev, results: withUrls };
+    },
+  });
+
+  return (
+    <Dialog open={!!evaluationId} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Evaluation Details</DialogTitle>
+        </DialogHeader>
+        {isLoading || !data?.ev ? (
+          <p className="text-sm text-muted-foreground">Loading…</p>
+        ) : (
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-3 text-sm md:grid-cols-4">
+              <div><p className="text-xs text-muted-foreground">Household</p><p className="font-medium">{(data.ev as any).households?.head_of_family}</p></div>
+              <div><p className="text-xs text-muted-foreground">Purok</p><p className="font-medium">{(data.ev as any).households?.purok}</p></div>
+              <div><p className="text-xs text-muted-foreground">Date</p><p className="font-medium">{data.ev.evaluation_date}</p></div>
+              <div><p className="text-xs text-muted-foreground">Score</p><p className="font-medium">{data.ev.total_score}/{data.ev.max_score}</p></div>
+            </div>
+            {data.ev.remarks && (
+              <div className="rounded-md bg-muted/50 p-3 text-sm"><span className="text-xs uppercase text-muted-foreground">Remarks: </span>{data.ev.remarks}</div>
+            )}
+            <div className="space-y-2">
+              {data.results.map((r: any) => (
+                <div key={r.id} className="flex items-start gap-3 rounded-md border border-border p-3">
+                  <div className="flex-1">
+                    <p className="text-xs text-muted-foreground">{CATEGORY_LABEL[r.compliance_checklist?.category] ?? r.compliance_checklist?.category}</p>
+                    <p className="font-medium">{r.compliance_checklist?.item_name}</p>
+                    <p className="text-xs"><span className={`rounded-full px-2 py-0.5 ${complianceBadgeClass(r.status)}`}>{COMPLIANCE_LABEL[r.status]}</span> · {r.score} pts</p>
+                  </div>
+                  {r.signedUrl ? (
+                    <a href={r.signedUrl} target="_blank" rel="noreferrer" className="shrink-0">
+                      <img src={r.signedUrl} alt="evidence" className="h-20 w-20 rounded-md border border-border object-cover" />
+                    </a>
+                  ) : (
+                    <div className="grid h-20 w-20 shrink-0 place-items-center rounded-md border border-dashed border-border text-[10px] text-muted-foreground">No photo</div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 }
