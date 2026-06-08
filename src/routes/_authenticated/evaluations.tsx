@@ -7,8 +7,10 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useState } from "react";
 import { COMPLIANCE_LABEL, complianceBadgeClass, exportCSV } from "@/lib/bshces-utils";
-import { Download, PlusCircle } from "lucide-react";
+import { Download, PlusCircle, Eye, RotateCw } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { CATEGORY_LABEL } from "@/lib/bshces-utils";
 
 export const Route = createFileRoute("/_authenticated/evaluations")({
   head: () => ({ meta: [{ title: "Evaluations — BSHCES" }] }),
@@ -27,6 +29,7 @@ function EvaluationsPage() {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("all");
   const [page, setPage] = useState(0);
+  const [viewId, setViewId] = useState<string | null>(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ["evaluations", status, page, search],
@@ -92,13 +95,13 @@ function EvaluationsPage() {
           <div className="overflow-x-auto rounded-md border border-border">
             <table className="w-full text-sm">
               <thead className="bg-muted/50 text-left text-xs uppercase text-muted-foreground">
-                <tr><th className="p-3">Date</th><th>Household</th><th>Purok</th><th>Score</th><th>Status</th><th>Approved</th></tr>
+                <tr><th className="p-3">Date</th><th>Household</th><th>Purok</th><th>Score</th><th>Status</th><th>Approved</th><th></th></tr>
               </thead>
               <tbody>
                 {isLoading ? (
-                  <tr><td colSpan={6} className="p-6 text-center text-muted-foreground">Loading…</td></tr>
+                  <tr><td colSpan={7} className="p-6 text-center text-muted-foreground">Loading…</td></tr>
                 ) : data?.rows.length === 0 ? (
-                  <tr><td colSpan={6} className="p-6 text-center text-muted-foreground">No evaluations found.</td></tr>
+                  <tr><td colSpan={7} className="p-6 text-center text-muted-foreground">No evaluations found.</td></tr>
                 ) : data?.rows.map((r: any) => (
                   <tr key={r.id} className="border-t border-border hover:bg-muted/30">
                     <td className="p-3">{r.evaluation_date}</td>
@@ -107,6 +110,20 @@ function EvaluationsPage() {
                     <td className="font-semibold">{r.total_score}/{r.max_score}</td>
                     <td><span className={`rounded-full px-2 py-0.5 text-xs ${complianceBadgeClass(r.compliance_status)}`}>{COMPLIANCE_LABEL[r.compliance_status]}</span></td>
                     <td>{r.approved ? "✓" : "—"}</td>
+                    <td>
+                      <div className="flex items-center justify-end gap-1">
+                        <Button variant="outline" size="sm" onClick={() => setViewId(r.id)}>
+                          <Eye className="mr-1 h-3.5 w-3.5" /> View
+                        </Button>
+                        {(role === "admin" || role === "bhw") && r.compliance_status !== "compliant" && (
+                          <Button asChild variant="secondary" size="sm">
+                            <Link to="/evaluations/new" search={{ household: (r as any).household_id ?? "" } as any}>
+                              <RotateCw className="mr-1 h-3.5 w-3.5" /> Follow-up
+                            </Link>
+                          </Button>
+                        )}
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -121,6 +138,8 @@ function EvaluationsPage() {
           </div>
         </CardContent>
       </Card>
+
+      <EvaluationDetailDialog evaluationId={viewId} onClose={() => setViewId(null)} />
     </div>
   );
 }
