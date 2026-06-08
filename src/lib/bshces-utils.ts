@@ -17,6 +17,8 @@ export const CATEGORY_LABEL: Record<string, string> = {
   ordinance: "Ordinance Compliance",
 };
 
+export const PUROKS = ["Aquino", "Marcos", "Macapagal", "Magsaysay", "Ramos", "Roxas"] as const;
+
 export function complianceBadgeClass(status: string) {
   switch (status) {
     case "compliant":
