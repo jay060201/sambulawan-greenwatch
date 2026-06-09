@@ -15,7 +15,10 @@ import { Camera, Loader2, X } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/evaluations/new")({
   head: () => ({ meta: [{ title: "New Evaluation — BSHCES" }] }),
-  validateSearch: (s: Record<string, unknown>) => ({ household: (s.household as string) ?? "" }),
+  validateSearch: (s: Record<string, unknown>) => ({
+    household: (s.household as string) ?? "",
+    followup: s.followup === "1" || s.followup === true ? "1" : "",
+  }),
   component: NewEvaluationPage,
 });
 
@@ -24,7 +27,8 @@ type Status = "compliant" | "partially_compliant" | "non_compliant";
 function NewEvaluationPage() {
   const { role, user } = useAuth();
   const navigate = useNavigate();
-  const { household: presetHousehold } = Route.useSearch();
+  const { household: presetHousehold, followup } = Route.useSearch();
+  const isFollowUp = followup === "1" && !!presetHousehold;
 
   if (role !== "admin" && role !== "bhw") return <AccessDenied />;
 
@@ -65,8 +69,31 @@ function NewEvaluationPage() {
   });
 
   const checklist = useQuery({
-    queryKey: ["checklist"],
-    queryFn: async () => (await supabase.from("compliance_checklist").select("*").order("category").order("sort_order")).data ?? [],
+    queryKey: ["checklist", isFollowUp ? presetHousehold : "all"],
+    queryFn: async () => {
+      const { data: all } = await supabase
+        .from("compliance_checklist")
+        .select("*")
+        .order("category")
+        .order("sort_order");
+      const items = all ?? [];
+      if (!isFollowUp) return items;
+      // Fetch most recent evaluation for household and keep only non-compliant items
+      const { data: lastEv } = await supabase
+        .from("evaluations")
+        .select("id")
+        .eq("household_id", presetHousehold)
+        .order("evaluation_date", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (!lastEv) return items;
+      const { data: results } = await supabase
+        .from("evaluation_results")
+        .select("checklist_id, status")
+        .eq("evaluation_id", lastEv.id);
+      const pending = new Set((results ?? []).filter((r: any) => r.status !== "compliant").map((r: any) => r.checklist_id));
+      return items.filter((c: any) => pending.has(c.id));
+    },
   });
 
   const grouped = useMemo(() => {
@@ -126,7 +153,12 @@ function NewEvaluationPage() {
     <div className="space-y-6">
       <div>
         <p className="text-xs uppercase tracking-wide text-muted-foreground">BHW Module</p>
-        <h1 className="text-2xl font-bold">New Household Evaluation</h1>
+        <h1 className="text-2xl font-bold">{isFollowUp ? "Follow-up Evaluation" : "New Household Evaluation"}</h1>
+        {isFollowUp && (
+          <p className="mt-1 text-sm text-muted-foreground">
+            Showing only the requirements this household has not yet complied with. Update the items they have now met.
+          </p>
+        )}
       </div>
 
       <Card>

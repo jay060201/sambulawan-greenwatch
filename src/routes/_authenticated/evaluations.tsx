@@ -118,7 +118,7 @@ function EvaluationsPage() {
                         </Button>
                         {(role === "admin" || role === "bhw") && r.compliance_status !== "compliant" && (
                           <Button asChild variant="secondary" size="sm">
-                            <Link to="/evaluations/new" search={{ household: (r as any).household_id ?? "" } as any}>
+                            <Link to="/evaluations/new" search={{ household: (r as any).household_id ?? "", followup: "1" } as any}>
                               <RotateCw className="mr-1 h-3.5 w-3.5" /> Follow-up
                             </Link>
                           </Button>
