@@ -82,10 +82,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { title: "BSHCES — Barangay Sambulawan Household Compliance" },
       { name: "description", content: "Digital evaluation, monitoring and analytics platform for household compliance in Barangay Sambulawan." },
       { name: "author", content: "Barangay Sambulawan" },
-      { property: "og:title", content: "BSHCES — Household Compliance Evaluation" },
-      { property: "og:description", content: "Modern government portal for evaluating household compliance: waste, sanitation, gardening, ordinances." },
+      { property: "og:title", content: "BSHCES — Barangay Sambulawan Household Compliance" },
+      { property: "og:description", content: "Digital evaluation, monitoring and analytics platform for household compliance in Barangay Sambulawan." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
+      { name: "twitter:title", content: "BSHCES — Barangay Sambulawan Household Compliance" },
+      { name: "twitter:description", content: "Digital evaluation, monitoring and analytics platform for household compliance in Barangay Sambulawan." },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/5de046f2-9981-46e4-b1ab-cbb4cc4ae1fa" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/5de046f2-9981-46e4-b1ab-cbb4cc4ae1fa" },
     ],
     links: [
       {
