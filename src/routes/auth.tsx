@@ -33,8 +33,19 @@ function AuthPage() {
     setLoading(true);
     try {
       if (mode === "signin") {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
+        // Verify approval status
+        const { data: prof } = await supabase
+          .from("profiles")
+          .select("status")
+          .eq("id", data.user!.id)
+          .maybeSingle();
+        if (prof && prof.status !== "approved") {
+          await supabase.auth.signOut();
+          toast.error("Your account is still awaiting admin approval.");
+          return;
+        }
         toast.success("Welcome back!");
       } else {
         const { error } = await supabase.auth.signUp({
@@ -46,7 +57,7 @@ function AuthPage() {
           },
         });
         if (error) throw error;
-        toast.success("Account created. You can sign in now.");
+        toast.success("Access request submitted. An administrator must approve your account before you can sign in.");
         setMode("signin");
       }
     } catch (err: any) {
@@ -81,7 +92,9 @@ function AuthPage() {
           </Link>
           <h1 className="text-2xl font-bold">{mode === "signin" ? "Sign in" : "Create account"}</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            {mode === "signin" ? "Access your BSHCES dashboard." : "The first account becomes the system administrator."}
+            {mode === "signin"
+              ? "Access your BSHCES dashboard."
+              : "New accounts require admin approval before sign-in. The first account created becomes the system administrator."}
           </p>
 
           <Tabs value={mode} onValueChange={(v) => setMode(v as any)} className="mt-6">
