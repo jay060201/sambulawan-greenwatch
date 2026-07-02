@@ -8,7 +8,8 @@ interface AuthCtx {
   session: Session | null;
   user: User | null;
   role: AppRole | null;
-  profile: { full_name: string; username: string } | null;
+  profile: { full_name: string; username: string; status: string } | null;
+  status: string | null;
   loading: boolean;
   signOut: () => Promise<void>;
   refresh: () => Promise<void>;
@@ -24,7 +25,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const loadProfileAndRole = async (uid: string) => {
     const [{ data: prof }, { data: roles }] = await Promise.all([
-      supabase.from("profiles").select("full_name, username").eq("id", uid).maybeSingle(),
+      supabase.from("profiles").select("full_name, username, status").eq("id", uid).maybeSingle(),
       supabase.from("user_roles").select("role").eq("user_id", uid),
     ]);
     setProfile(prof ?? null);
@@ -55,6 +56,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     user: session?.user ?? null,
     role,
     profile,
+    status: profile?.status ?? null,
     loading,
     signOut: async () => {
       await supabase.auth.signOut();

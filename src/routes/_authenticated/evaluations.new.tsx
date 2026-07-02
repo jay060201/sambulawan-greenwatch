@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CATEGORY_LABEL } from "@/lib/bshces-utils";
 import { toast } from "sonner";
-import { Camera, Loader2, X } from "lucide-react";
+import { Camera, Loader2, X, Lock } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/evaluations/new")({
   head: () => ({ meta: [{ title: "New Evaluation — BSHCES" }] }),
@@ -102,6 +102,23 @@ function NewEvaluationPage() {
     return m;
   }, [checklist.data]);
 
+  // Ordered flat list — used to enforce "photo before proceeding to next criteria"
+  const orderedItems = checklist.data ?? [];
+
+  // An item is "complete" when it has a status AND (photo attached OR marked non-compliant)
+  const isItemComplete = (id: string) => {
+    const a = answers[id];
+    if (!a) return false;
+    if (a === "non_compliant") return true;
+    return !!photos[id];
+  };
+
+  const firstIncompleteIndex = orderedItems.findIndex((c: any) => !isItemComplete(c.id));
+  const isItemUnlocked = (id: string) => {
+    const idx = orderedItems.findIndex((c: any) => c.id === id);
+    return firstIncompleteIndex === -1 || idx <= firstIncompleteIndex;
+  };
+
   const totals = useMemo(() => {
     let total = 0, max = 0;
     (checklist.data ?? []).forEach((c: any) => {
@@ -186,11 +203,27 @@ function NewEvaluationPage() {
         <Card key={cat}>
           <CardHeader><CardTitle>{CATEGORY_LABEL[cat]}</CardTitle></CardHeader>
           <CardContent className="divide-y divide-border">
-            {items.map((item) => (
-              <div key={item.id} className="grid grid-cols-1 items-start gap-3 py-3 md:grid-cols-[1fr_auto_auto]">
+            {items.map((item) => {
+              const unlocked = isItemUnlocked(item.id);
+              const needsPhoto =
+                (answers[item.id] === "compliant" || answers[item.id] === "partially_compliant") &&
+                !photos[item.id];
+              return (
+              <div key={item.id} className={`grid grid-cols-1 items-start gap-3 py-3 md:grid-cols-[1fr_auto_auto] ${!unlocked ? "opacity-50" : ""}`}>
                 <div>
-                  <p className="font-medium">{item.item_name}</p>
-                  <p className="text-xs text-muted-foreground">{item.points} points</p>
+                  <p className="font-medium flex items-center gap-1">
+                    {!unlocked && <Lock className="h-3 w-3 text-muted-foreground" />}
+                    {item.item_name}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {item.points} points
+                    {needsPhoto && unlocked && (
+                      <span className="ml-2 text-destructive">Attach a photo to proceed</span>
+                    )}
+                    {!unlocked && (
+                      <span className="ml-2 text-amber-600">Complete previous item first</span>
+                    )}
+                  </p>
                 </div>
                 <div className="flex gap-2">
                   {(["compliant","partially_compliant","non_compliant"] as Status[]).map((s) => (
@@ -198,6 +231,7 @@ function NewEvaluationPage() {
                       key={s}
                       type="button"
                       size="sm"
+                      disabled={!unlocked}
                       variant={answers[item.id] === s ? "default" : "outline"}
                       onClick={() => setAnswers({ ...answers, [item.id]: s })}
                     >
@@ -215,7 +249,7 @@ function NewEvaluationPage() {
                       </button>
                     </div>
                   ) : (
-                    <label className="inline-flex cursor-pointer items-center gap-1 rounded-md border border-dashed border-border px-2 py-1 text-xs text-muted-foreground hover:bg-muted">
+                    <label className={`inline-flex items-center gap-1 rounded-md border border-dashed px-2 py-1 text-xs ${unlocked ? "cursor-pointer border-border text-muted-foreground hover:bg-muted" : "cursor-not-allowed border-border/50 text-muted-foreground/50"}`}>
                       {uploading[item.id] ? <Loader2 className="h-3 w-3 animate-spin" /> : <Camera className="h-3 w-3" />}
                       <span>Evidence</span>
                       <input
@@ -223,13 +257,14 @@ function NewEvaluationPage() {
                         accept="image/*"
                         capture="environment"
                         className="hidden"
+                        disabled={!unlocked}
                         onChange={(e) => { const f = e.target.files?.[0]; if (f) handlePhoto(item.id, f); e.target.value = ""; }}
                       />
                     </label>
                   )}
                 </div>
               </div>
-            ))}
+            );})}
           </CardContent>
         </Card>
       ))}
@@ -243,7 +278,11 @@ function NewEvaluationPage() {
 
       <div className="flex justify-end gap-2">
         <Button variant="outline" onClick={() => navigate({ to: "/evaluations" })}>Cancel</Button>
-        <Button onClick={() => submit.mutate()} disabled={submit.isPending}>
+        <Button
+          onClick={() => submit.mutate()}
+          disabled={submit.isPending || firstIncompleteIndex !== -1}
+          title={firstIncompleteIndex !== -1 ? "Complete every checklist item (with photo evidence when compliant) before submitting." : ""}
+        >
           {submit.isPending ? "Submitting…" : "Submit Evaluation"}
         </Button>
       </div>

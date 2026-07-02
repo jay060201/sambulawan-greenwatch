@@ -46,7 +46,7 @@ const NAV: { label: string; items: Item[] }[] = [
     label: "Administration",
     items: [
       { title: "User Management", to: "/users", icon: Users, roles: ["admin"] },
-      { title: "System Settings", to: "/settings", icon: Settings, roles: ["admin"] },
+      { title: "Settings", to: "/settings", icon: Settings, roles: ["admin"] },
     ],
   },
 ];
