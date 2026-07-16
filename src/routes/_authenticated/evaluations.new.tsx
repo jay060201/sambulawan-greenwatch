@@ -209,19 +209,16 @@ function NewEvaluationPage() {
                 (answers[item.id] === "compliant" || answers[item.id] === "partially_compliant") &&
                 !photos[item.id];
               return (
-              <div key={item.id} className={`grid grid-cols-1 items-start gap-3 py-3 md:grid-cols-[1fr_auto_auto] ${!unlocked ? "opacity-50" : ""}`}>
+              <div key={item.id} className="grid grid-cols-1 items-start gap-3 py-3 md:grid-cols-[1fr_auto_auto]">
                 <div>
-                  <p className="font-medium flex items-center gap-1">
-                    {!unlocked && <Lock className="h-3 w-3 text-muted-foreground" />}
-                    {item.item_name}
-                  </p>
+                  <p className="font-medium">{item.item_name}</p>
                   <p className="text-xs text-muted-foreground">
                     {item.points} points
                     {needsPhoto && unlocked && (
                       <span className="ml-2 text-destructive">Attach a photo to proceed</span>
                     )}
                     {!unlocked && (
-                      <span className="ml-2 text-amber-600">Complete previous item first</span>
+                      <span className="ml-2 text-amber-600">Attach photo to previous item to unlock</span>
                     )}
                   </p>
                 </div>
