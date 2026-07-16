@@ -9,6 +9,7 @@ import {
   Settings,
   Leaf,
   PlusCircle,
+  CalendarClock,
 } from "lucide-react";
 import {
   Sidebar,
@@ -39,6 +40,7 @@ const NAV: { label: string; items: Item[] }[] = [
       { title: "Households", to: "/households", icon: Home, roles: ["admin", "bhw", "viewer"] },
       { title: "Evaluations", to: "/evaluations", icon: ClipboardCheck, roles: ["admin", "bhw", "viewer"] },
       { title: "New Evaluation", to: "/evaluations/new", icon: PlusCircle, roles: ["admin", "bhw"] },
+      { title: "Follow-ups", to: "/follow-ups", icon: CalendarClock, roles: ["admin", "bhw", "viewer"] },
       { title: "Reports", to: "/reports", icon: FileText, roles: ["admin", "bhw", "viewer"] },
     ],
   },
