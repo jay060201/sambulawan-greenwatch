@@ -87,6 +87,8 @@ export type Database = {
           created_at: string
           evaluation_date: string
           evaluator_id: string | null
+          follow_up_completed: boolean
+          follow_up_date: string | null
           household_id: string
           id: string
           max_score: number
@@ -99,6 +101,8 @@ export type Database = {
           created_at?: string
           evaluation_date?: string
           evaluator_id?: string | null
+          follow_up_completed?: boolean
+          follow_up_date?: string | null
           household_id: string
           id?: string
           max_score?: number
@@ -111,6 +115,8 @@ export type Database = {
           created_at?: string
           evaluation_date?: string
           evaluator_id?: string | null
+          follow_up_completed?: boolean
+          follow_up_date?: string | null
           household_id?: string
           id?: string
           max_score?: number
