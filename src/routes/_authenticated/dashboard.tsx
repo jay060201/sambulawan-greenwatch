@@ -88,6 +88,20 @@ function DashboardPage() {
     },
   });
 
+  const followUps = useQuery({
+    queryKey: ["dashboard-follow-ups"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("evaluations")
+        .select("id, household_id, follow_up_date, compliance_status, households(head_of_family, purok)" as any)
+        .eq("follow_up_completed" as any, false)
+        .not("follow_up_date" as any, "is", null)
+        .order("follow_up_date" as any, { ascending: true })
+        .limit(6);
+      return (data ?? []) as any[];
+    },
+  });
+
   const pieData = stats.data
     ? [
         { name: "Compliant", value: stats.data.breakdown.compliant, color: "var(--chart-1)" },
