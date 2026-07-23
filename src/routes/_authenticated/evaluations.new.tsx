@@ -109,7 +109,6 @@ function NewEvaluationPage() {
   const isItemComplete = (id: string) => {
     const a = answers[id];
     if (!a) return false;
-    if (a === "non_compliant") return true;
     return !!photos[id];
   };
 
@@ -205,9 +204,7 @@ function NewEvaluationPage() {
           <CardContent className="divide-y divide-border">
             {items.map((item) => {
               const unlocked = isItemUnlocked(item.id);
-              const needsPhoto =
-                (answers[item.id] === "compliant" || answers[item.id] === "partially_compliant") &&
-                !photos[item.id];
+              const needsPhoto = !!answers[item.id] && !photos[item.id];
               return (
               <div key={item.id} className="grid grid-cols-1 items-start gap-3 py-3 md:grid-cols-[1fr_auto_auto]">
                 <div>
