@@ -1,5 +1,5 @@
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,11 +7,10 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useState } from "react";
 import { COMPLIANCE_LABEL, complianceBadgeClass, exportCSV } from "@/lib/bshces-utils";
-import { Download, PlusCircle, Eye, RotateCw, Camera, Loader2, Pencil, X } from "lucide-react";
+import { Download, PlusCircle, Eye, RotateCw } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { CATEGORY_LABEL } from "@/lib/bshces-utils";
-import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/evaluations")({
   head: () => ({ meta: [{ title: "Evaluations — BSHCES" }] }),
