@@ -70,7 +70,7 @@ function EvaluationsPage() {
           </Button>
           {(role === "admin" || role === "bhw") && (
             <Button asChild>
-              <Link to="/evaluations/new"><PlusCircle className="mr-2 h-4 w-4" /> New Evaluation</Link>
+              <Link to="/evaluations/new" search={{} as any}><PlusCircle className="mr-2 h-4 w-4" /> New Evaluation</Link>
             </Button>
           )}
         </div>
