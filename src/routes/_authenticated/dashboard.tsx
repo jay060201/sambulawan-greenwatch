@@ -93,10 +93,10 @@ function DashboardPage() {
     queryFn: async () => {
       const { data } = await supabase
         .from("evaluations")
-        .select("id, household_id, follow_up_date, compliance_status, households(head_of_family, purok)" as any)
+        .select("id, household_id, compliance_status, evaluation_date, households(head_of_family, purok)" as any)
         .eq("follow_up_completed" as any, false)
-        .not("follow_up_date" as any, "is", null)
-        .order("follow_up_date" as any, { ascending: true })
+        .neq("compliance_status", "compliant")
+        .order("evaluation_date", { ascending: false })
         .limit(6);
       return (data ?? []) as any[];
     },
@@ -170,32 +170,25 @@ function DashboardPage() {
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="flex items-center gap-2"><CalendarClock className="h-4 w-4" /> Upcoming Follow-ups</CardTitle>
+          <CardTitle className="flex items-center gap-2"><CalendarClock className="h-4 w-4" /> Needs Follow-up</CardTitle>
           <Button asChild size="sm" variant="outline"><Link to="/follow-ups">View all</Link></Button>
         </CardHeader>
         <CardContent>
           {followUps.isLoading ? (
             <p className="text-sm text-muted-foreground">Loading…</p>
           ) : (followUps.data ?? []).length === 0 ? (
-            <p className="text-sm text-muted-foreground">No follow-ups scheduled. 🎉</p>
+            <p className="text-sm text-muted-foreground">No households need follow-up. 🎉</p>
           ) : (
             <ul className="divide-y divide-border">
-              {(followUps.data ?? []).map((r: any) => {
-                const d = new Date(r.follow_up_date); d.setHours(0,0,0,0);
-                const today = new Date(); today.setHours(0,0,0,0);
-                const diff = Math.round((d.getTime() - today.getTime()) / 86400000);
-                const label = diff < 0 ? `Overdue ${Math.abs(diff)}d` : diff === 0 ? "Today" : `In ${diff}d`;
-                const cls = diff < 0 ? "bg-destructive/15 text-destructive" : diff <= 7 ? "bg-[color:var(--warning)]/15 text-[color:var(--warning)]" : "bg-muted text-muted-foreground";
-                return (
+              {(followUps.data ?? []).map((r: any) => (
                   <li key={r.id} className="flex items-center justify-between py-2 text-sm">
                     <div>
                       <p className="font-medium">{r.households?.head_of_family}</p>
-                      <p className="text-xs text-muted-foreground">{r.households?.purok} · {r.follow_up_date}</p>
+                      <p className="text-xs text-muted-foreground">{r.households?.purok} · last evaluated {r.evaluation_date}</p>
                     </div>
-                    <span className={`rounded-full px-2 py-0.5 text-xs ${cls}`}>{label}</span>
+                    <span className={`rounded-full px-2 py-0.5 text-xs ${complianceBadgeClass(r.compliance_status)}`}>{COMPLIANCE_LABEL[r.compliance_status]}</span>
                   </li>
-                );
-              })}
+                ))}
             </ul>
           )}
         </CardContent>
