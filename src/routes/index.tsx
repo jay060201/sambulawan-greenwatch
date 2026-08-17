@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
-import { Leaf, ShieldCheck, BarChart3, Recycle, Sprout, ScrollText } from "lucide-react";
+import { ShieldCheck, BarChart3, Recycle, Sprout, ScrollText } from "lucide-react";
+import logoAsset from "@/assets/barangay_sambulawan_logo.png.asset.json";
 
 export const Route = createFileRoute("/")({
   head: () => ({
