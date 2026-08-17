@@ -61,7 +61,7 @@ function AuthPage() {
       <div className="relative hidden md:block" style={{ background: "var(--gradient-primary)" }}>
         <div className="absolute inset-0 flex flex-col justify-between p-10 text-primary-foreground">
           <div className="flex items-center gap-2">
-            <Leaf className="h-6 w-6" />
+            <img src={logoAsset.url} alt="Barangay Sambulawan" className="h-8 w-8 rounded-full object-cover" />
             <span className="text-lg font-semibold">BSHCES</span>
           </div>
           <div>
