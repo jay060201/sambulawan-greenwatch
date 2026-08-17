@@ -7,7 +7,6 @@ import {
   FileText,
   Users,
   Settings,
-  Leaf,
   PlusCircle,
   CalendarClock,
 } from "lucide-react";
@@ -23,6 +22,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { useAuth, type AppRole } from "@/hooks/useAuth";
+import logoAsset from "@/assets/barangay_sambulawan_logo.png.asset.json";
 
 type Item = { title: string; to: string; icon: any; roles: AppRole[] };
 
