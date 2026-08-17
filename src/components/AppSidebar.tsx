@@ -7,7 +7,6 @@ import {
   FileText,
   Users,
   Settings,
-  Leaf,
   PlusCircle,
   CalendarClock,
 } from "lucide-react";
@@ -23,6 +22,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { useAuth, type AppRole } from "@/hooks/useAuth";
+import logoAsset from "@/assets/barangay_sambulawan_logo.png.asset.json";
 
 type Item = { title: string; to: string; icon: any; roles: AppRole[] };
 
@@ -61,9 +61,11 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader className="border-b border-sidebar-border p-4">
         <div className="flex items-center gap-2">
-          <div className="grid h-9 w-9 shrink-0 place-items-center rounded-lg" style={{ background: "var(--gradient-primary)" }}>
-            <Leaf className="h-5 w-5 text-primary-foreground" />
-          </div>
+          <img
+            src={logoAsset.url}
+            alt="Barangay Sambulawan"
+            className="h-9 w-9 shrink-0 rounded-lg object-cover"
+          />
           <div className="min-w-0 group-data-[collapsible=icon]:hidden">
             <p className="truncate text-sm font-semibold">BSHCES</p>
             <p className="truncate text-xs text-muted-foreground">Sambulawan Portal</p>

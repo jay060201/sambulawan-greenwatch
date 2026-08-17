@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
-import { Leaf, ShieldCheck, BarChart3, Recycle, Sprout, ScrollText } from "lucide-react";
+import { ShieldCheck, BarChart3, Recycle, Sprout, ScrollText } from "lucide-react";
+import logoAsset from "@/assets/barangay_sambulawan_logo.png.asset.json";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -19,9 +20,7 @@ function Index() {
       <header className="border-b border-border bg-card/50 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <div className="flex items-center gap-2">
-            <div className="grid h-10 w-10 place-items-center rounded-lg" style={{ background: "var(--gradient-primary)" }}>
-              <Leaf className="h-5 w-5 text-primary-foreground" />
-            </div>
+            <img src={logoAsset.url} alt="Barangay Sambulawan" className="h-10 w-10 rounded-full object-cover" />
             <div>
               <p className="text-sm font-semibold leading-tight">BSHCES</p>
               <p className="text-xs text-muted-foreground leading-tight">Barangay Sambulawan</p>
