@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import logoAsset from "@/assets/barangay_sambulawan_logo.png.asset.json";
 
@@ -22,6 +23,7 @@ function AuthPage() {
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [username, setUsername] = useState("");
+  const [signupRole, setSignupRole] = useState<"bhw" | "viewer">("bhw");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -42,11 +44,11 @@ function AuthPage() {
           password,
           options: {
             emailRedirectTo: `${window.location.origin}/dashboard`,
-            data: { full_name: fullName, username },
+            data: { full_name: fullName, username, role: signupRole },
           },
         });
         if (error) throw error;
-        toast.success("Account created! You can now sign in.");
+        toast.success("Account created! An administrator must approve your access before you can view records.");
         setMode("signin");
       }
     } catch (err: any) {
@@ -101,6 +103,19 @@ function AuthPage() {
                 <div>
                   <Label htmlFor="username">Username</Label>
                   <Input id="username" required={mode === "signup"} value={username} onChange={(e) => setUsername(e.target.value)} placeholder="juandc" />
+                </div>
+                <div>
+                  <Label htmlFor="role">Role</Label>
+                  <Select value={signupRole} onValueChange={(v) => setSignupRole(v as "bhw" | "viewer")}>
+                    <SelectTrigger id="role"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="bhw">Barangay Health Worker (BHW)</SelectItem>
+                      <SelectItem value="viewer">Barangay Official (Viewer)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    New accounts require Admin approval before the system can be viewed.
+                  </p>
                 </div>
               </TabsContent>
 
