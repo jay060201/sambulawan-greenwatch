@@ -62,7 +62,7 @@ function UsersPage() {
         <p className="text-xs uppercase tracking-wide text-muted-foreground">Admin</p>
         <h1 className="text-2xl font-bold">User Management</h1>
         <p className="text-sm text-muted-foreground">
-          BHWs and Barangay Officials (Viewers) can only access the system after you approve them.
+          Barangay Officials (Viewers) can only access the system after you approve them. BHW accounts are active immediately.
         </p>
       </div>
 
@@ -92,7 +92,7 @@ function UsersPage() {
                       </Select>
                     </td>
                     <td>
-                      {u.role === "admin" ? (
+                      {u.role !== "viewer" ? (
                         <span className="text-xs text-muted-foreground">Always allowed</span>
                       ) : u.status === "active" ? (
                         <div className="flex items-center gap-2">

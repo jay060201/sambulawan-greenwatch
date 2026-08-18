@@ -25,7 +25,7 @@ function AuthLayout() {
     );
   }
 
-  if (role !== "admin" && profile && profile.status !== "active") {
+  if (role === "viewer" && profile && profile.status !== "active") {
     const suspended = profile.status === "suspended";
     return (
       <div className="grid min-h-screen place-items-center bg-background p-6 text-center">
