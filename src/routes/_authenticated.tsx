@@ -25,7 +25,7 @@ function AuthLayout() {
     );
   }
 
-  if (role !== "admin" && profile && profile.status !== "active") {
+  if (role === "viewer" && profile && profile.status !== "active") {
     const suspended = profile.status === "suspended";
     return (
       <div className="grid min-h-screen place-items-center bg-background p-6 text-center">
@@ -39,7 +39,7 @@ function AuthLayout() {
           <p className="mt-2 text-sm text-muted-foreground">
             {suspended
               ? "Your access to BSHCES has been suspended. Please contact the barangay administrator."
-              : `Your ${role === "bhw" ? "BHW" : "Viewer"} account has been created. An administrator must approve your access before you can view the system's records.`}
+              : "Your Barangay Official (Viewer) account has been created. An administrator must approve your access before you can view the system's records."}
           </p>
           <Button
             variant="outline"
