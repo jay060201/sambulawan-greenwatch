@@ -151,7 +151,7 @@ function EvaluationDetailDialog({ evaluationId, onClose }: { evaluationId: strin
     queryFn: async () => {
       const { data: ev } = await supabase
         .from("evaluations")
-        .select("id, evaluation_date, total_score, max_score, compliance_status, remarks, households(head_of_family, household_number, purok)")
+        .select("id, household_id, created_at, evaluation_date, total_score, max_score, compliance_status, remarks, households(head_of_family, household_number, purok)")
         .eq("id", evaluationId!)
         .maybeSingle();
       const { data: results } = await supabase
@@ -167,7 +167,34 @@ function EvaluationDetailDialog({ evaluationId, onClose }: { evaluationId: strin
           return { ...r, signedUrl: signed?.signedUrl ?? null };
         }),
       );
-      return { ev, results: withUrls };
+      let prev: any = null;
+      let prevResults: Record<string, any> = {};
+      if (ev) {
+        const { data: p } = await supabase
+          .from("evaluations")
+          .select("id, evaluation_date, total_score, max_score, compliance_status")
+          .eq("household_id", (ev as any).household_id)
+          .lt("created_at", (ev as any).created_at)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        prev = p;
+        if (p) {
+          const { data: pr } = await supabase
+            .from("evaluation_results")
+            .select("checklist_id, status, score, photo_url")
+            .eq("evaluation_id", p.id);
+          await Promise.all((pr ?? []).map(async (r: any) => {
+            let signedUrl: string | null = null;
+            if (r.photo_url) {
+              const { data: sg } = await supabase.storage.from("evaluation-evidence").createSignedUrl(r.photo_url, 3600);
+              signedUrl = sg?.signedUrl ?? null;
+            }
+            prevResults[r.checklist_id] = { ...r, signedUrl };
+          }));
+        }
+      }
+      return { ev, results: withUrls, prev, prevResults };
     },
   });
 
@@ -187,6 +214,20 @@ function EvaluationDetailDialog({ evaluationId, onClose }: { evaluationId: strin
               <div><p className="text-xs text-muted-foreground">Date</p><p className="font-medium">{data.ev.evaluation_date}</p></div>
               <div><p className="text-xs text-muted-foreground">Score</p><p className="font-medium">{data.ev.total_score}/{data.ev.max_score}</p></div>
             </div>
+            {data.prev && (
+              <div className="grid grid-cols-2 gap-3 rounded-md border border-border p-3 text-sm">
+                <div>
+                  <p className="text-xs uppercase text-muted-foreground">Previous score ({data.prev.evaluation_date})</p>
+                  <p className="text-lg font-bold">{data.prev.total_score}/{data.prev.max_score}</p>
+                  <span className={`rounded-full px-2 py-0.5 text-xs ${complianceBadgeClass(data.prev.compliance_status)}`}>{COMPLIANCE_LABEL[data.prev.compliance_status]}</span>
+                </div>
+                <div>
+                  <p className="text-xs uppercase text-muted-foreground">Current score ({data.ev.evaluation_date})</p>
+                  <p className="text-lg font-bold">{data.ev.total_score}/{data.ev.max_score}</p>
+                  <span className={`rounded-full px-2 py-0.5 text-xs ${complianceBadgeClass(data.ev.compliance_status)}`}>{COMPLIANCE_LABEL[data.ev.compliance_status]}</span>
+                </div>
+              </div>
+            )}
             {data.ev.remarks && (
               <div className="rounded-md bg-muted/50 p-3 text-sm"><span className="text-xs uppercase text-muted-foreground">Remarks: </span>{data.ev.remarks}</div>
             )}
@@ -198,6 +239,18 @@ function EvaluationDetailDialog({ evaluationId, onClose }: { evaluationId: strin
                     <p className="font-medium">{r.compliance_checklist?.item_name}</p>
                     <p className="text-xs"><span className={`rounded-full px-2 py-0.5 ${complianceBadgeClass(r.status)}`}>{COMPLIANCE_LABEL[r.status]}</span> · {r.score} pts</p>
                   </div>
+                  {data.prevResults[r.checklist_id] && data.prevResults[r.checklist_id].status !== "compliant" && (
+                    <div className="shrink-0 text-center">
+                      {data.prevResults[r.checklist_id].signedUrl ? (
+                        <a href={data.prevResults[r.checklist_id].signedUrl} target="_blank" rel="noreferrer">
+                          <img src={data.prevResults[r.checklist_id].signedUrl} alt="previous evidence" className="h-20 w-20 rounded-md border border-border object-cover opacity-80" />
+                        </a>
+                      ) : (
+                        <div className="grid h-20 w-20 place-items-center rounded-md border border-dashed border-border text-[10px] text-muted-foreground">No photo</div>
+                      )}
+                      <p className="mt-1 text-[10px] text-muted-foreground">Before · {data.prevResults[r.checklist_id].score} pts</p>
+                    </div>
+                  )}
                   {r.signedUrl ? (
                     <a href={r.signedUrl} target="_blank" rel="noreferrer" className="shrink-0">
                       <img src={r.signedUrl} alt="evidence" className="h-20 w-20 rounded-md border border-border object-cover" />
