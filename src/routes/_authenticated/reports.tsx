@@ -73,6 +73,29 @@ function ReportsPage() {
     exportCSV(`${name}_${periodLabel.replace(/\s+/g, "_")}.csv`, rows);
   };
 
+  const printReport = () => {
+    const el = document.getElementById("report-print-area");
+    if (!el) return;
+    const iframe = document.createElement("iframe");
+    iframe.style.cssText = "position:fixed;right:0;bottom:0;width:0;height:0;border:0";
+    document.body.appendChild(iframe);
+    const doc = iframe.contentDocument!;
+    doc.open();
+    doc.write(`<html><head><title>${preview?.title ?? "Report"} - ${periodLabel}</title><style>
+      body{font-family:Arial,sans-serif;color:#000;padding:24px;font-size:12px}
+      h2{margin:4px 0;font-size:18px} p{margin:2px 0}
+      .text-center{text-align:center} .border-b{border-bottom:1px solid #999;padding-bottom:8px;margin-bottom:12px}
+      table{width:100%;border-collapse:collapse} th,td{border:1px solid #999;padding:6px;text-align:left}
+      th{background:#eee;text-transform:uppercase;font-size:10px} span{border:none!important;background:none!important;color:#000!important}
+    </style></head><body>${el.innerHTML}</body></html>`);
+    doc.close();
+    setTimeout(() => {
+      iframe.contentWindow?.focus();
+      iframe.contentWindow?.print();
+      setTimeout(() => iframe.remove(), 1000);
+    }, 250);
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -149,7 +172,7 @@ function ReportsPage() {
           <DialogHeader>
             <DialogTitle className="flex items-center justify-between gap-3">
               <span>Print Preview — {preview?.title}</span>
-              <Button size="sm" onClick={() => window.print()} className="no-print">
+              <Button size="sm" onClick={printReport} className="no-print">
                 <Printer className="mr-2 h-4 w-4" /> Print
               </Button>
             </DialogTitle>

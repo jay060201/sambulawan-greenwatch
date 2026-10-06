@@ -114,7 +114,7 @@ function AuthPage() {
                     </SelectContent>
                   </Select>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    New accounts require Admin approval before the system can be viewed.
+                    BHW and Viewer accounts require Admin approval before the system can be accessed.
                   </p>
                 </div>
               </TabsContent>

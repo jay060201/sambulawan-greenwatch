@@ -92,7 +92,7 @@ function UsersPage() {
                       </Select>
                     </td>
                     <td>
-                      {u.role !== "viewer" ? (
+                      {u.role === "admin" ? (
                         <span className="text-xs text-muted-foreground">Always allowed</span>
                       ) : u.status === "active" ? (
                         <div className="flex items-center gap-2">

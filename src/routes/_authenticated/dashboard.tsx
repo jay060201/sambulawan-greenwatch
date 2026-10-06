@@ -88,20 +88,6 @@ function DashboardPage() {
     },
   });
 
-  const followUps = useQuery({
-    queryKey: ["dashboard-follow-ups"],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("evaluations")
-        .select("id, household_id, compliance_status, evaluation_date, households(head_of_family, purok)" as any)
-        .eq("follow_up_completed" as any, false)
-        .neq("compliance_status", "compliant")
-        .order("evaluation_date", { ascending: false })
-        .limit(6);
-      return (data ?? []) as any[];
-    },
-  });
-
   const pieData = stats.data
     ? [
         { name: "Compliant", value: stats.data.breakdown.compliant, color: "var(--chart-1)" },
@@ -167,32 +153,6 @@ function DashboardPage() {
           </CardContent>
         </Card>
       </div>
-
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="flex items-center gap-2"><CalendarClock className="h-4 w-4" /> Needs Follow-up</CardTitle>
-          <Button asChild size="sm" variant="outline"><Link to="/follow-ups">View all</Link></Button>
-        </CardHeader>
-        <CardContent>
-          {followUps.isLoading ? (
-            <p className="text-sm text-muted-foreground">Loading…</p>
-          ) : (followUps.data ?? []).length === 0 ? (
-            <p className="text-sm text-muted-foreground">No households need follow-up. 🎉</p>
-          ) : (
-            <ul className="divide-y divide-border">
-              {(followUps.data ?? []).map((r: any) => (
-                  <li key={r.id} className="flex items-center justify-between py-2 text-sm">
-                    <div>
-                      <p className="font-medium">{r.households?.head_of_family}</p>
-                      <p className="text-xs text-muted-foreground">{r.households?.purok} · last evaluated {r.evaluation_date}</p>
-                    </div>
-                    <span className={`rounded-full px-2 py-0.5 text-xs ${complianceBadgeClass(r.compliance_status)}`}>{COMPLIANCE_LABEL[r.compliance_status]}</span>
-                  </li>
-                ))}
-            </ul>
-          )}
-        </CardContent>
-      </Card>
 
       <Card>
         <CardHeader>
