@@ -214,8 +214,9 @@ function AuthPage() {
                       <Input
                         id="password"
                         type={showPassword ? "text" : "password"}
-                        required={mode !== "forgot"}
+                        required
                         minLength={6}
+
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         placeholder="••••••••"
