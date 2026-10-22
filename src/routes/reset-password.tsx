@@ -55,13 +55,12 @@ function ResetPasswordPage() {
   return (
     <div className="relative min-h-screen w-full overflow-hidden">
       <img
-        src={bgAsset}
+        src={bgAsset.url}
         alt=""
         aria-hidden
-        width={1920}
-        height={1280}
         className="absolute inset-0 h-full w-full scale-110 object-cover blur-lg"
       />
+
       <div className="absolute inset-0 bg-background/20" />
 
       <div className="relative flex min-h-screen items-center justify-center p-4">
