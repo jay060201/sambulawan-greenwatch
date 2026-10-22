@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Eye, EyeOff, Loader2, ShieldCheck, X } from "lucide-react";
 import { toast } from "sonner";
 import logoAsset from "@/assets/barangay_sambulawan_logo.png.asset.json";
-import bgAsset from "@/assets/auth_background.jpg";
+import bgAsset from "@/assets/barangay_sambulawan_hall.png.asset.json";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({ meta: [{ title: "Sign in — BSHCES" }] }),
@@ -72,13 +72,12 @@ function AuthPage() {
   return (
     <div className="relative min-h-screen w-full overflow-hidden">
       <img
-        src={bgAsset}
+        src={bgAsset.url}
         alt=""
         aria-hidden
-        width={1920}
-        height={1280}
         className="absolute inset-0 h-full w-full scale-110 object-cover blur-lg"
       />
+
       <div className="absolute inset-0 bg-background/20" />
 
       <div className="relative flex min-h-screen items-center justify-center p-4">
