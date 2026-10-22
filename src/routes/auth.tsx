@@ -209,6 +209,7 @@ function AuthPage() {
                   </div>
                   <div>
                     <Label htmlFor="password">Password</Label>
+
                     <div className="relative mt-1">
                       <Input
                         id="password"
