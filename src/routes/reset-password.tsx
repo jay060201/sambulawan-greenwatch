@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Eye, EyeOff, Loader2, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import logoAsset from "@/assets/barangay_sambulawan_logo.png.asset.json";
-import bgAsset from "@/assets/auth_background.jpg";
+import bgAsset from "@/assets/barangay_sambulawan_hall.png.asset.json";
 
 export const Route = createFileRoute("/reset-password")({
   head: () => ({ meta: [{ title: "Reset password — BSHCES" }] }),
