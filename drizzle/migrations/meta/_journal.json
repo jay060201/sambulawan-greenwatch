@@ -8,6 +8,13 @@
       "when": 1791309266469,
       "tag": "0000_bhw_requires_approval",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1792759654714,
+      "tag": "0001_create_admin_set_user_role_function",
+      "breakpoints": true
     }
   ]
 }
