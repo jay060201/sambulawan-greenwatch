@@ -6,7 +6,7 @@ import { AccessDenied } from "@/components/AppShell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Check, Ban } from "lucide-react";
+import { Check, Ban, Lock } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/users")({
@@ -33,8 +33,12 @@ function UsersPage() {
 
   const updateRole = useMutation({
     mutationFn: async ({ userId, newRole }: { userId: string; newRole: AppRole }) => {
-      await supabase.from("user_roles").delete().eq("user_id", userId);
-      const { error } = await supabase.from("user_roles").insert({ user_id: userId, role: newRole });
+      // Atomic: inserts the new role and removes the old one in a single
+      // database call, so a failed change can never leave a user role-less.
+      const { error } = await supabase.rpc("admin_set_user_role", {
+        _user_id: userId,
+        _new_role: newRole,
+      });
       if (error) throw error;
     },
     onSuccess: () => {
@@ -62,7 +66,7 @@ function UsersPage() {
         <p className="text-xs uppercase tracking-wide text-muted-foreground">Admin</p>
         <h1 className="text-2xl font-bold">User Management</h1>
         <p className="text-sm text-muted-foreground">
-          Barangay Officials (Viewers) can only access the system after you approve them. BHW accounts are active immediately.
+          New BHW and Barangay Official (Viewer) accounts can only access the system after you approve them. The Admin role is locked and cannot be changed.
         </p>
       </div>
 
@@ -82,14 +86,24 @@ function UsersPage() {
                     <td className="p-3 font-medium">{u.full_name}</td>
                     <td className="text-muted-foreground">{u.username}</td>
                     <td>
-                      <Select value={u.role ?? "viewer"} onValueChange={(v) => updateRole.mutate({ userId: u.id, newRole: v as AppRole })}>
-                        <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="admin">Admin</SelectItem>
-                          <SelectItem value="bhw">BHW</SelectItem>
-                          <SelectItem value="viewer">Viewer</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      {u.role === "admin" ? (
+                        <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-muted px-2.5 py-1 text-xs font-medium">
+                          <Lock className="h-3 w-3" /> Admin
+                        </span>
+                      ) : (
+                        <Select
+                          value={u.role ?? undefined}
+                          onValueChange={(v) => updateRole.mutate({ userId: u.id, newRole: v as AppRole })}
+                        >
+                          <SelectTrigger className="w-32">
+                            <SelectValue placeholder="Set role" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="bhw">BHW</SelectItem>
+                            <SelectItem value="viewer">Viewer</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      )}
                     </td>
                     <td>
                       {u.role === "admin" ? (
