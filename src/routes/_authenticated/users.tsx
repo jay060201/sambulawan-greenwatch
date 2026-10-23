@@ -66,7 +66,7 @@ function UsersPage() {
         <p className="text-xs uppercase tracking-wide text-muted-foreground">Admin</p>
         <h1 className="text-2xl font-bold">User Management</h1>
         <p className="text-sm text-muted-foreground">
-          Barangay Officials (Viewers) can only access the system after you approve them. BHW accounts are active immediately.
+          New BHW and Barangay Official (Viewer) accounts can only access the system after you approve them. The Admin role is locked and cannot be changed.
         </p>
       </div>
 
