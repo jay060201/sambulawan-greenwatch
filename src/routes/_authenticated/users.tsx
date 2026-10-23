@@ -33,8 +33,12 @@ function UsersPage() {
 
   const updateRole = useMutation({
     mutationFn: async ({ userId, newRole }: { userId: string; newRole: AppRole }) => {
-      await supabase.from("user_roles").delete().eq("user_id", userId);
-      const { error } = await supabase.from("user_roles").insert({ user_id: userId, role: newRole });
+      // Atomic: inserts the new role and removes the old one in a single
+      // database call, so a failed change can never leave a user role-less.
+      const { error } = await supabase.rpc("admin_set_user_role", {
+        _user_id: userId,
+        _new_role: newRole,
+      });
       if (error) throw error;
     },
     onSuccess: () => {
