@@ -86,14 +86,24 @@ function UsersPage() {
                     <td className="p-3 font-medium">{u.full_name}</td>
                     <td className="text-muted-foreground">{u.username}</td>
                     <td>
-                      <Select value={u.role ?? "viewer"} onValueChange={(v) => updateRole.mutate({ userId: u.id, newRole: v as AppRole })}>
-                        <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="admin">Admin</SelectItem>
-                          <SelectItem value="bhw">BHW</SelectItem>
-                          <SelectItem value="viewer">Viewer</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      {u.role === "admin" ? (
+                        <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-muted px-2.5 py-1 text-xs font-medium">
+                          <Lock className="h-3 w-3" /> Admin
+                        </span>
+                      ) : (
+                        <Select
+                          value={u.role ?? undefined}
+                          onValueChange={(v) => updateRole.mutate({ userId: u.id, newRole: v as AppRole })}
+                        >
+                          <SelectTrigger className="w-32">
+                            <SelectValue placeholder="Set role" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="bhw">BHW</SelectItem>
+                            <SelectItem value="viewer">Viewer</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      )}
                     </td>
                     <td>
                       {u.role === "admin" ? (
