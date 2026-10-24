@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { ShieldCheck, BarChart3, Recycle, Sprout, ScrollText } from "lucide-react";
-import logoAsset from "@/assets/barangay_sambulawan_logo.png.asset.json";
+import logo from "@/assets/barangay_sambulawan_logo.png";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -20,7 +20,7 @@ function Index() {
       <header className="border-b border-border bg-card/50 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <div className="flex items-center gap-2">
-            <img src={logoAsset.url} alt="Barangay Sambulawan" className="h-10 w-10 rounded-full object-cover" />
+            <img src={logo} alt="Barangay Sambulawan" className="h-10 w-10 rounded-full object-cover" />
             <div>
               <p className="text-sm font-semibold leading-tight">BSHCES</p>
               <p className="text-xs text-muted-foreground leading-tight">Barangay Sambulawan</p>

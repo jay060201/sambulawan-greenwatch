@@ -6,8 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Eye, EyeOff, Loader2, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
-import logoAsset from "@/assets/barangay_sambulawan_logo.png.asset.json";
-import bgAsset from "@/assets/barangay_sambulawan_hall.png.asset.json";
+import logo from "@/assets/barangay_sambulawan_logo.png";
+import hallBg from "@/assets/barangay_sambulawan_hall.png";
 
 export const Route = createFileRoute("/reset-password")({
   head: () => ({ meta: [{ title: "Reset password — BSHCES" }] }),
@@ -55,7 +55,7 @@ function ResetPasswordPage() {
   return (
     <div className="relative min-h-screen w-full overflow-hidden">
       <img
-        src={bgAsset.url}
+        src={hallBg}
         alt=""
         aria-hidden
         className="absolute inset-0 h-full w-full scale-110 object-cover blur-lg"
@@ -66,7 +66,7 @@ function ResetPasswordPage() {
       <div className="relative flex min-h-screen items-center justify-center p-4">
         <div className="w-full max-w-md rounded-2xl bg-card p-8 shadow-xl">
           <div className="flex flex-col items-center text-center">
-            <img src={logoAsset.url} alt="Barangay Sambulawan" className="h-20 w-20 rounded-full object-cover" />
+            <img src={logo} alt="Barangay Sambulawan" className="h-20 w-20 rounded-full object-cover" />
             <h1 className="mt-4 text-2xl font-bold tracking-wide uppercase">Set New Password</h1>
             <p className="mt-1 text-sm text-muted-foreground">
               Choose a new password for your BSHCES account.
