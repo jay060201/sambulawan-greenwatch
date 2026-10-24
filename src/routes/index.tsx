@@ -34,7 +34,14 @@ function Index() {
       </header>
 
       <section className="relative overflow-hidden">
-        <div className="mx-auto max-w-6xl px-6 py-20 text-center">
+        <img
+          src={hallBg}
+          alt=""
+          aria-hidden
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+        <div className="absolute inset-0 bg-background/70 backdrop-blur-sm" />
+        <div className="relative mx-auto max-w-6xl px-6 py-24 text-center">
           <div className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1 text-xs font-medium text-muted-foreground">
             <ShieldCheck className="h-3.5 w-3.5 text-primary" />
             Official Barangay Compliance Platform
