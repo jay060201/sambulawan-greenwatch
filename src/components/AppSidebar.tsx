@@ -21,7 +21,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { useAuth, type AppRole } from "@/hooks/useAuth";
-import logoAsset from "@/assets/barangay_sambulawan_logo.png.asset.json";
+import logo from "@/assets/barangay_sambulawan_logo.png";
 
 type Item = { title: string; to: string; icon: any; roles: AppRole[] };
 
@@ -60,7 +60,7 @@ export function AppSidebar() {
       <SidebarHeader className="border-b border-sidebar-border p-4">
         <div className="flex items-center gap-2">
           <img
-            src={logoAsset.url}
+            src={logo}
             alt="Barangay Sambulawan"
             className="h-9 w-9 shrink-0 rounded-lg object-cover"
           />
