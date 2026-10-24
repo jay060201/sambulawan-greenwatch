@@ -15,6 +15,13 @@
       "when": 1792759654714,
       "tag": "0001_create_admin_set_user_role_function",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792827085317,
+      "tag": "0002_fix_authed_view_policies",
+      "breakpoints": true
     }
   ]
 }
