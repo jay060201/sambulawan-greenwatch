@@ -3,6 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { ShieldCheck, BarChart3, Recycle, Sprout, ScrollText } from "lucide-react";
 import logo from "@/assets/barangay_sambulawan_logo.png";
+import hallBg from "@/assets/barangay_sambulawan_hall.png";
 
 export const Route = createFileRoute("/")({
   head: () => ({
