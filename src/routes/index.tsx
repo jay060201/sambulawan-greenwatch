@@ -40,7 +40,7 @@ function Index() {
           aria-hidden
           className="absolute inset-0 h-full w-full object-cover"
         />
-        <div className="absolute inset-0 bg-background/40" />
+        <div className="absolute inset-0 bg-background/55" />
         <div className="relative mx-auto max-w-6xl px-6 py-24 text-center">
           <div className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1 text-xs font-medium text-muted-foreground">
             <ShieldCheck className="h-3.5 w-3.5 text-primary" />
