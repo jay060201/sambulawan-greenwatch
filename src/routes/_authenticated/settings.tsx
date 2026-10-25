@@ -52,7 +52,7 @@ function SettingsPage() {
     onError: (e: any) => toast.error(e.message),
   });
 
-  const [newItem, setNewItem] = useState({ category: "waste_segregation", item_name: "", points: 1 });
+  const [newItem, setNewItem] = useState<{ category: "waste_segregation" | "sanitation" | "gardening" | "ordinance"; item_name: string; points: number }>({ category: "waste_segregation", item_name: "", points: 1 });
   const addItem = useMutation({
     mutationFn: async () => {
       const { error } = await supabase.from("compliance_checklist").insert({
@@ -92,7 +92,7 @@ function SettingsPage() {
         <CardContent className="flex flex-wrap items-end gap-3">
           <div className="min-w-[12rem]">
             <Label>Category</Label>
-            <Select value={newItem.category} onValueChange={(v) => setNewItem({ ...newItem, category: v })}>
+            <Select value={newItem.category} onValueChange={(v) => setNewItem({ ...newItem, category: v as "waste_segregation" | "sanitation" | "gardening" | "ordinance" })}>
               <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
               <SelectContent>
                 {Object.entries(CATEGORY_LABEL).map(([k, label]) => <SelectItem key={k} value={k}>{label}</SelectItem>)}
