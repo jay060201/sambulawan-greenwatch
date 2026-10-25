@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { CATEGORY_LABEL } from "@/lib/bshces-utils";
+import { CATEGORY_LABEL, COMPLIANCE_LABEL, computeComplianceStatus } from "@/lib/bshces-utils";
 import { toast } from "sonner";
 import { Camera, Loader2, X, Lock } from "lucide-react";
 
@@ -133,8 +133,7 @@ function NewEvaluationPage() {
     mutationFn: async () => {
       if (!householdId) throw new Error("Choose a household");
       if (!user) throw new Error("Not signed in");
-      const ratio = totals.max ? totals.total / totals.max : 0;
-      const status: Status = ratio >= 0.85 ? "compliant" : ratio >= 0.5 ? "partially_compliant" : "non_compliant";
+      const status = computeComplianceStatus(totals.total, totals.max);
 
       const { data: ev, error: e1 } = await supabase
         .from("evaluations")
@@ -194,6 +193,10 @@ function NewEvaluationPage() {
           <div className="rounded-md bg-muted/50 p-4">
             <p className="text-xs text-muted-foreground">Live Score</p>
             <p className="text-3xl font-bold">{totals.total}<span className="text-base font-normal text-muted-foreground">/{totals.max}</span></p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {totals.max ? Math.round((totals.total / totals.max) * 100) : 0}% —{" "}
+              <span className="font-medium text-foreground">{COMPLIANCE_LABEL[computeComplianceStatus(totals.total, totals.max)]}</span>
+            </p>
           </div>
         </CardContent>
       </Card>

@@ -10,8 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { useAuth } from "@/hooks/useAuth";
-import { exportCSV } from "@/lib/bshces-utils";
-import { PUROKS } from "@/lib/bshces-utils";
+import { exportCSV, PUROKS, ADDRESS_OPTIONS } from "@/lib/bshces-utils";
 import { Download, PlusCircle, Trash2, ClipboardCheck, Pencil } from "lucide-react";
 import { toast } from "sonner";
 
@@ -30,6 +29,7 @@ function HouseholdsPage() {
   const [page, setPage] = useState(0);
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<any | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<any | null>(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ["households", search, purok, page],
@@ -179,7 +179,7 @@ function HouseholdsPage() {
                               <Pencil className="h-4 w-4" />
                             </Button>
                             {canDelete && (
-                              <Button variant="ghost" size="icon" onClick={() => delMut.mutate(h.id)}>
+                              <Button variant="ghost" size="icon" onClick={() => setPendingDelete(h)} title="Delete household">
                                 <Trash2 className="h-4 w-4 text-destructive" />
                               </Button>
                             )}
@@ -214,6 +214,30 @@ function HouseholdsPage() {
           />
         )}
       </Dialog>
+
+      <Dialog open={!!pendingDelete} onOpenChange={(o) => !o && setPendingDelete(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete household?</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            This will permanently remove <span className="font-medium text-foreground">{pendingDelete?.head_of_family}</span>{" "}
+            (household {pendingDelete?.household_number}). This action cannot be undone.
+          </p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPendingDelete(null)}>Cancel</Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                if (pendingDelete) delMut.mutate(pendingDelete.id);
+                setPendingDelete(null);
+              }}
+            >
+              Yes, delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -227,6 +251,8 @@ function HouseholdForm({ onSubmit, initial, title = "Add Household" }: { onSubmi
     contact_number: initial?.contact_number ?? "",
     total_members: initial?.total_members ?? 1,
   });
+  const hnDigits = form.household_number.replace(/\D/g, "");
+  const hnInvalid = form.household_number !== (initial?.household_number ?? "") && hnDigits.length !== 11;
   const phoneDigits = form.contact_number.replace(/\D/g, "");
   const phoneInvalid = form.contact_number.length > 0 && phoneDigits.length !== 11;
   return (
@@ -235,7 +261,22 @@ function HouseholdForm({ onSubmit, initial, title = "Add Household" }: { onSubmi
         <DialogTitle>{title}</DialogTitle>
       </DialogHeader>
       <div className="grid gap-3">
-        <div><Label>Household Number</Label><Input value={form.household_number} onChange={(e) => setForm({ ...form, household_number: e.target.value })} /></div>
+        <div>
+          <Label>Household Number</Label>
+          <Input
+            inputMode="numeric"
+            maxLength={11}
+            value={form.household_number}
+            onChange={(e) => setForm({ ...form, household_number: e.target.value.replace(/\D/g, "").slice(0, 11) })}
+            className={hnInvalid ? "border-destructive focus-visible:ring-destructive" : ""}
+            placeholder="11-digit household number"
+          />
+          {hnInvalid && (
+            <p className="mt-1 text-xs text-destructive">
+              Household number must be exactly 11 digits (currently {hnDigits.length}).
+            </p>
+          )}
+        </div>
         <div><Label>Head of Family</Label><Input value={form.head_of_family} onChange={(e) => setForm({ ...form, head_of_family: e.target.value })} /></div>
         <div><Label>Purok</Label>
           <Select value={form.purok} onValueChange={(v) => setForm({ ...form, purok: v })}>
@@ -245,7 +286,15 @@ function HouseholdForm({ onSubmit, initial, title = "Add Household" }: { onSubmi
             </SelectContent>
           </Select>
         </div>
-        <div><Label>Address</Label><Input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} /></div>
+        <div>
+          <Label>Address</Label>
+          <Select value={form.address} onValueChange={(v) => setForm({ ...form, address: v })}>
+            <SelectTrigger><SelectValue placeholder="Select address…" /></SelectTrigger>
+            <SelectContent>
+              {ADDRESS_OPTIONS.map((a) => <SelectItem key={a} value={a}>{a}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
         <div>
           <Label>Contact Number</Label>
           <Input
@@ -266,7 +315,7 @@ function HouseholdForm({ onSubmit, initial, title = "Add Household" }: { onSubmi
       </div>
       <DialogFooter>
         <Button
-          disabled={phoneInvalid || !form.household_number || !form.head_of_family || !form.address}
+          disabled={phoneInvalid || hnInvalid || !form.household_number || !form.head_of_family || !form.address}
           onClick={() => onSubmit(form)}
         >
           Save

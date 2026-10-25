@@ -47,3 +47,20 @@ export function exportCSV(filename: string, rows: Record<string, any>[]) {
   a.click();
   URL.revokeObjectURL(url);
 }
+
+// Passing bands: Compliant = 100% of the checklist, Partially Compliant = 70–99%,
+// Non-Compliant = below 70%.
+export function computeComplianceStatus(
+  total: number,
+  max: number,
+): "compliant" | "partially_compliant" | "non_compliant" {
+  if (max <= 0) return "non_compliant";
+  const ratio = total / max;
+  if (ratio >= 1) return "compliant";
+  if (ratio >= 0.7) return "partially_compliant";
+  return "non_compliant";
+}
+
+// Address drop-down options for the household form.
+// Placeholder: swap with the official address list once provided.
+export const ADDRESS_OPTIONS: readonly string[] = PUROKS;

@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Download, FileText, Printer, Eye } from "lucide-react";
 import { exportCSV, COMPLIANCE_LABEL, complianceBadgeClass } from "@/lib/bshces-utils";
 import { useMemo, useState } from "react";
+import logo from "@/assets/barangay_sambulawan_logo.png";
 
 export const Route = createFileRoute("/_authenticated/reports")({
   head: () => ({ meta: [{ title: "Reports — BSHCES" }] }),
@@ -81,13 +82,18 @@ function ReportsPage() {
     document.body.appendChild(iframe);
     const doc = iframe.contentDocument!;
     doc.open();
+    const logoUrl = new URL(logo, window.location.origin).href;
+    const bodyHtml = el.innerHTML.replace(/<img[^>]*data-preview-logo[^>]*>/g, "");
     doc.write(`<html><head><title>${preview?.title ?? "Report"} - ${periodLabel}</title><style>
       body{font-family:Arial,sans-serif;color:#000;padding:24px;font-size:12px}
       h2{margin:4px 0;font-size:18px} p{margin:2px 0}
       .text-center{text-align:center} .border-b{border-bottom:1px solid #999;padding-bottom:8px;margin-bottom:12px}
       table{width:100%;border-collapse:collapse} th,td{border:1px solid #999;padding:6px;text-align:left}
       th{background:#eee;text-transform:uppercase;font-size:10px} span{border:none!important;background:none!important;color:#000!important}
-    </style></head><body>${el.innerHTML}</body></html>`);
+      img{border:none}
+    </style></head><body>
+      <img src="${logoUrl}" alt="Barangay Sambulawan logo" style="display:block;width:72px;height:72px;object-fit:cover;border-radius:50%;margin:0 auto 8px" />
+      ${bodyHtml}</body></html>`);
     doc.close();
     setTimeout(() => {
       iframe.contentWindow?.focus();
@@ -179,6 +185,7 @@ function ReportsPage() {
           </DialogHeader>
           <div id="report-print-area" className="space-y-3">
             <div className="border-b border-border pb-3 text-center">
+              <img src={logo} data-preview-logo alt="Barangay Sambulawan logo" className="mx-auto mb-2 h-14 w-14 rounded-full object-cover" />
               <p className="text-xs uppercase tracking-wider text-muted-foreground">Barangay Sambulawan</p>
               <h2 className="text-lg font-bold">Household Compliance Evaluation System</h2>
               <p className="text-sm">{preview?.title} — {periodLabel}</p>
