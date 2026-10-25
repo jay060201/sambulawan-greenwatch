@@ -5,11 +5,13 @@ import { useAuth } from "@/hooks/useAuth";
 import { AccessDenied } from "@/components/AppShell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CATEGORY_LABEL } from "@/lib/bshces-utils";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Save } from "lucide-react";
+import { Save, PlusCircle } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   head: () => ({ meta: [{ title: "Settings — BSHCES" }] }),
@@ -50,6 +52,25 @@ function SettingsPage() {
     onError: (e: any) => toast.error(e.message),
   });
 
+  const [newItem, setNewItem] = useState({ category: "waste_segregation", item_name: "", points: 1 });
+  const addItem = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.from("compliance_checklist").insert({
+        category: newItem.category,
+        item_name: newItem.item_name.trim(),
+        points: newItem.points,
+        sort_order: 999,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Checklist item added — it now counts toward the overall score");
+      setNewItem((n) => ({ ...n, item_name: "" }));
+      qc.invalidateQueries({ queryKey: ["settings-checklist"] });
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
   const grouped: Record<string, any[]> = {};
   (checklist.data ?? []).forEach((c: any) => { (grouped[c.category] ??= []).push(c); });
 
@@ -65,6 +86,45 @@ function SettingsPage() {
           <Save className="mr-2 h-4 w-4" /> {savePoints.isPending ? "Saving…" : "Save Changes"}
         </Button>
       </div>
+
+      <Card>
+        <CardHeader><CardTitle>Add Checklist Item</CardTitle></CardHeader>
+        <CardContent className="flex flex-wrap items-end gap-3">
+          <div className="min-w-[12rem]">
+            <Label>Category</Label>
+            <Select value={newItem.category} onValueChange={(v) => setNewItem({ ...newItem, category: v })}>
+              <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {Object.entries(CATEGORY_LABEL).map(([k, label]) => <SelectItem key={k} value={k}>{label}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="min-w-[14rem] flex-1">
+            <Label>Requirement</Label>
+            <Input
+              className="mt-1"
+              value={newItem.item_name}
+              onChange={(e) => setNewItem({ ...newItem, item_name: e.target.value })}
+              placeholder="e.g. Compost pit maintained"
+              maxLength={120}
+            />
+          </div>
+          <div className="w-24">
+            <Label>Points</Label>
+            <Input
+              className="mt-1"
+              type="number"
+              min={0}
+              max={100}
+              value={newItem.points}
+              onChange={(e) => setNewItem({ ...newItem, points: Math.max(0, Number(e.target.value) || 0) })}
+            />
+          </div>
+          <Button onClick={() => addItem.mutate()} disabled={addItem.isPending || !newItem.item_name.trim()}>
+            <PlusCircle className="mr-2 h-4 w-4" /> {addItem.isPending ? "Adding…" : "Add Item"}
+          </Button>
+        </CardContent>
+      </Card>
 
       {Object.entries(grouped).map(([cat, items]) => (
         <Card key={cat}>
