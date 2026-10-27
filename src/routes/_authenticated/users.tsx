@@ -72,22 +72,6 @@ function RoleBadge({ role }: { role: AppRole | null }) {
   );
 }
 
-function EditableRole({ user, onRoleChange, pending }: { user: UserRow; onRoleChange: (r: AppRole) => void; pending: boolean }) {
-  return (
-    <Select value={user.role ?? undefined} onValueChange={(v) => onRoleChange(v as AppRole)} disabled={pending}>
-      <SelectTrigger
-        className="h-auto w-fit gap-1 rounded-full border-border bg-muted px-2.5 py-1 text-xs font-semibold uppercase tracking-wide"
-        aria-label={`Role for ${user.full_name}`}
-      >
-        <SelectValue placeholder="Set role" />
-      </SelectTrigger>
-      <SelectContent>
-        <SelectItem value="bhw">BHW</SelectItem>
-        <SelectItem value="viewer">Viewer</SelectItem>
-      </SelectContent>
-    </Select>
-  );
-}
 
 function UsersPage() {
   const { role } = useAuth();
@@ -111,22 +95,6 @@ function UsersPage() {
 
   const invalidate = () => qc.invalidateQueries({ queryKey: ["all-users"] });
 
-  const updateRole = useMutation({
-    mutationFn: async ({ userId, newRole }: { userId: string; newRole: AppRole }) => {
-      // Atomic: inserts the new role and removes the old one in a single
-      // database call, so a failed change can never leave a user role-less.
-      const { error } = await supabase.rpc("admin_set_user_role", {
-        _user_id: userId,
-        _new_role: newRole,
-      });
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      toast.success("Role updated");
-      invalidate();
-    },
-    onError: (e: any) => toast.error(e.message),
-  });
 
   const updateStatus = useMutation({
     mutationFn: async ({ userId, status }: { userId: string; status: "active" | "rejected" }) => {
