@@ -5,7 +5,6 @@ import { useAuth, type AppRole } from "@/hooks/useAuth";
 import { deleteUserAsAdmin } from "@/lib/api/users.functions";
 import { AccessDenied } from "@/components/AppShell";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -240,11 +239,7 @@ function UsersPage() {
                           <StatusPill status={u.status} />
                         </td>
                         <td>
-                          {u.role === "admin" ? (
-                            <RoleBadge role={u.role} />
-                          ) : (
-                            <EditableRole user={u} pending={false} onRoleChange={(r) => updateRole.mutate({ userId: u.id, newRole: r })} />
-                          )}
+                          <RoleBadge role={u.role} />
                         </td>
                         <td className="p-3 text-muted-foreground">{new Date(u.created_at).toLocaleDateString()}</td>
                         <td className="p-3">
