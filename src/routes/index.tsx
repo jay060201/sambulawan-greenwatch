@@ -26,7 +26,9 @@ function Index() {
           className="h-28 w-28 rounded-full border border-border object-cover shadow-[var(--shadow-card)]"
         />
         <div>
-          <h1 className="text-4xl font-bold tracking-tight">BSHCES</h1>
+          <h1 className="max-w-md text-2xl font-bold leading-snug tracking-tight sm:text-3xl sm:leading-snug">
+            Barangay Sambulawan Household Compliance Evaluation System
+          </h1>
           <p className="mt-1 text-sm text-muted-foreground">Barangay Sambulawan</p>
         </div>
         <Button asChild size="lg">
